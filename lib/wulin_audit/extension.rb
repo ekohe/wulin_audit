@@ -1,7 +1,7 @@
 module WulinAudit
   module Extension
     extend ActiveSupport::Concern
-    
+
     # inject callbacks to the rom model at include
     included do
       class_eval do
@@ -10,11 +10,11 @@ module WulinAudit
         after_destroy :audit_deleted, :if => :audit?
       end
     end
-    
+
     module InstanceMethods
       def audit_created
         details = self.attributes.reject{ |k,v| !audit_columns.include?(k) }
-
+        details = details.inject({}){|hash, x| hash.merge(x[0] => to_utc(x[1]))}
         create_audit_log('create', details)
       end
 
@@ -22,13 +22,17 @@ module WulinAudit
         changes = self.changes.presence || self.previous_changes.presence
         if changes and (changes.keys & audit_columns).present?
           details = changes.reject{ |k,v| !audit_columns.include?(k) }
-          create_audit_log('update', details)
+          valid_details = {}
+          details.each do |k,v|
+            valid_details[k] = v.map{|x| to_utc(x)} 
+          end
+          create_audit_log('update', valid_details)
         end
       end
 
       def audit_deleted
         details = self.attributes.reject{ |k,v| !audit_columns.include?(k) }
-
+        details = details.inject({}){|hash, x| hash.merge(x[0] => to_utc(x[1]))}
         create_audit_log('delete', details)
       end
 
@@ -73,6 +77,14 @@ module WulinAudit
         :detail => details_content
         )
       end
+
+      private
+      def to_utc(time)
+        return time unless time.is_a?(DateTime) or time.is_a?(Time)
+        time.utc
+      end
+      
     end
+    
   end
 end
