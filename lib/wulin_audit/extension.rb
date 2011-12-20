@@ -14,7 +14,7 @@ module WulinAudit
     module InstanceMethods
       def audit_created
         details = self.attributes.reject{ |k,v| !audit_columns.include?(k) }
-        details = details.inject({}){|hash, x| hash.merge(x[0] => to_utc(x[1]))}
+        details = details.inject({}){|hash, x| hash.merge(x[0] => time_convert(x[1]))}
         create_audit_log('create', details)
       end
 
@@ -24,7 +24,7 @@ module WulinAudit
           details = changes.reject{ |k,v| !audit_columns.include?(k) }
           valid_details = {}
           details.each do |k,v|
-            valid_details[k] = v.map{|x| to_utc(x)} 
+            valid_details[k] = v.map{|x| time_convert(x)} 
           end
           create_audit_log('update', valid_details)
         end
@@ -32,7 +32,7 @@ module WulinAudit
 
       def audit_deleted
         details = self.attributes.reject{ |k,v| !audit_columns.include?(k) }
-        details = details.inject({}){|hash, x| hash.merge(x[0] => to_utc(x[1]))}
+        details = details.inject({}){|hash, x| hash.merge(x[0] => time_convert(x[1]))}
         create_audit_log('delete', details)
       end
 
@@ -79,12 +79,17 @@ module WulinAudit
       end
 
       private
-      def to_utc(time)
-        return time unless time.is_a?(DateTime) or time.is_a?(Time)
-        time.utc
+      def time_convert(time)
+        if time.is_a?(DateTime) or time.is_a?(Time)
+          time.utc
+        elsif time.is_a?(Date)
+          time.to_s
+        else
+          time
+        end
       end
-      
+
     end
-    
+
   end
 end
