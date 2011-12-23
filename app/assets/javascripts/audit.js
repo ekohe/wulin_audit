@@ -12,7 +12,7 @@ $(function() {
       recordUnit = selectedIds.split(',').length > 1 ? 'records' : 'record';
 
       $grid_container = $('<div/>')
-      .attr({'id': 'grid_record_audit'});
+      .attr({'class': 'grid_record_audit'});
 
 
       $dialog = $('<div/>')
