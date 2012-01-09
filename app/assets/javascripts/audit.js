@@ -27,7 +27,7 @@ $(function() {
         height: 500,
         buttons: {
           "Ok": function() { 
-            $(this).dialog("close"); 
+            $(this).dialog("destroy"); 
           } 
         },
         modal: true,
