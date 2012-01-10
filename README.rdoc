@@ -1,0 +1,65 @@
+= WulinAudit
+
+== How to Use
+
+
+1. WulinAudit is depends on mongoDB database, before use it you need install mongodb.
+
+   On Mac OS X using Homebrew:
+    
+    brew install mongodb
+    
+   On Ubuntu & Debian:
+   please read the installation from mongoDB Official Website : {Ubuntu and Debian packages}[www.mongodb.org/display/DOCS/Ubuntu+and+Debian+packages].
+    
+
+2. Put <code>gem wulin_audit</code> to your Gemfile:
+
+    gem wulin_audit
+
+3. Run bundler command to install the gem:
+
+    bundle install
+   
+3. Now, you have <b><em>WulinAudit::AuditLogsController</em></b> and <b><em>WulinAudit::AuditLog</em></b> model, and it will audit all the models automatically.
+
+   Attributes in <code>WulinAudit::AuditLog</code>:
+    
+    user_id    # current user's id, equal to +User.current_user.try(:id)+
+    user_email # current user's email, equal to +User.current_user.try(:email)+ 
+    record_id  # id for record which was audited.
+    action     # current action name
+    class_name # class name for record which was audited 
+    detail     # changes detail.
+
+   WulinAudit will audit all the models; if you do not want audit some one, 
+   please define +REJECT_AUDIT+ const and assign to 'true', like:
+
+    class Post < ActiveRecord::Base
+      REJECT_AUDIT = true
+    end
+  
+   the +Post+ model will skip audit.
+  
+   If a module was audited, WulinAudit will audit all the columns, 
+   You also can control which columns need audit, you need define +AUDIT_COLUMNS+ const
+  
+    class Post < ActiveRecord::Base
+      AUDIT_COLUMNS = %w(title content category) & column_names
+    end
+
+
+== Work with WulinMaster
+
+<b><em>{WulinMaster}[https://github.com/wulin/wulin_master]</em></b> is a grid gem base on {SlickGrid}[https://github.com/mleibman/SlickGrid].
+It provide powerfull generator and other tools to make grids easy to build.
+WulinAudit support WulinMaster well. if you use WulinMaster gem,it will support it automatically.
+  
+
+== Contributing
+
+Jimmy, Xuhao and Maxime Guilbot from Ekohe, inc.
+
+== License
+
+WulinOAuth is released under the MIT license.
