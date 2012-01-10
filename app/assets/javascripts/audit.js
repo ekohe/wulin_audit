@@ -26,8 +26,9 @@ $(function() {
         width: 700,
         height: 500,
         buttons: {
-          "Ok": function() { 
-            $(this).dialog("destroy"); 
+          "Ok": function() {  
+            $(this).html('');
+            $(this).dialog("destroy");
           } 
         },
         modal: true,
