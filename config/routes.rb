@@ -4,4 +4,5 @@ Rails.application.routes.draw do
   end
   
   resources :audit_logs
+  resources :record_audits
 end
