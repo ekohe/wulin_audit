@@ -1,5 +1,4 @@
 if defined? WulinMaster
-  require 'mongoid_support'
 
   WulinAudit::AuditLog.class_eval do
     include MongoidSupport
