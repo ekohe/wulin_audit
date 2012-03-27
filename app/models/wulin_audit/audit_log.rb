@@ -4,6 +4,6 @@ module WulinAudit
   class AuditLog
     include Mongoid::Document
     include Mongoid::Timestamps::Created
-    REJECT_AUDIT = true
+    reject_audit
   end
 end

@@ -32,21 +32,26 @@
     class_name # class name for record which was audited 
     detail     # changes detail.
 
-   WulinAudit will audit all the models; if you do not want audit some one, 
-   please define +REJECT_AUDIT+ const and assign to 'true', like:
+   WulinAudit will audit all the models automatically; 
+   if you do not want audit some, use +reject_audit+ method:
 
     class Post < ActiveRecord::Base
-      REJECT_AUDIT = true
+      reject_audit
     end
   
    the +Post+ model will skip audit.
   
-   If a module was audited, WulinAudit will audit all the columns, 
-   You also can control which columns need audit, you need define +AUDIT_COLUMNS+ const
+   If a module was audited, WulinAudit will audit all the columns automatically, 
+   You also can control which columns need audit, you need use +audit_columns+ method:
   
     class Post < ActiveRecord::Base
-      AUDIT_COLUMNS = %w(title content category) & column_names
+      audit_columns(%w(title content category) & column_names)
+      audit_columns :title, :content, :category
+      audit_columns 'title', 'content', 'category'
     end
+   
+   Note that, +audit_columns+ will be ignored when audit be rejected by +reject_audit+ method
+
 
 
 == Work with WulinMaster

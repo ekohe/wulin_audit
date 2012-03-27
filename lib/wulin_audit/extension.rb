@@ -5,15 +5,33 @@ module WulinAudit
     # inject callbacks to the rom model at include
     included do
       class_eval do
-        after_create :audit_created,  :if => :audit?
-        after_update :audit_updated,  :if => :audit?
-        after_destroy :audit_deleted, :if => :audit?
+        after_create  :audit_created, :if => :auditable?
+        after_update  :audit_updated, :if => :auditable?
+        after_destroy :audit_deleted, :if => :auditable?
+      end
+    end
+    
+    module ClassMethods
+      def reject_audit
+        cattr_accessor :auditable
+        self.auditable = false
+      end
+      
+      def audit_columns(*columns)
+        cattr_accessor :_audit_columns
+        self._audit_columns = columns.map(&:to_s) & valid_column_names
+      end
+      
+      # Get column_names for ActiveRecord and Mongoid 
+      def valid_column_names
+        all_valid_column_names = (self.respond_to?(:column_names) ? self.column_names : (self.respond_to?(:fields) ? self.fields.keys : []))
+        all_valid_column_names - %w(created_at updated_at)
       end
     end
 
 
     def audit_created
-      details = self.attributes.reject{ |k,v| !audit_columns.include?(k) }
+      details = self.attributes.reject{ |k,v| audit_columns.exclude?(k) }
       details = details.inject({}){|hash, x| hash.merge(x[0] => time_convert(x[1]))}
       create_audit_log('create', details)
     end
@@ -21,7 +39,7 @@ module WulinAudit
     def audit_updated
       changes = self.changes.presence || self.previous_changes.presence
       if changes and (changes.keys & audit_columns).present?
-        details = changes.reject{ |k,v| !audit_columns.include?(k) }
+        details = changes.reject{ |k,v| audit_columns.exclude?(k) }
         valid_details = {}
         details.each do |k,v|
           valid_details[k] = v.map{|x| time_convert(x)} 
@@ -31,36 +49,40 @@ module WulinAudit
     end
 
     def audit_deleted
-      details = self.attributes.reject{ |k,v| !audit_columns.include?(k) }
+      details = self.attributes.reject{ |k,v| audit_columns.exclude?(k) }
       details = details.inject({}){|hash, x| hash.merge(x[0] => time_convert(x[1]))}
       create_audit_log('delete', details)
     end
 
-    # WulinAudit will audit all the models; if you do not want audit some, 
-    # please define +REJECT_AUDIT+ const and assign to 'true', like:
-    #
+    # WulinAudit will audit all the models automatically; 
+    # if you do not want audit some, use +reject_audit+ method:
     #   class Post < ActiveRecord::Base
-    #     REJECT_AUDIT = true
+    #     reject_audit
     #   end
     #
-    def audit?
-      !self.class.const_defined?('REJECT_AUDIT') or (self.class.const_defined?('REJECT_AUDIT') and !self.class::REJECT_AUDIT)
+    def auditable?
+      if self.class.respond_to?(:auditable)
+        self.class.auditable
+      else
+        true
+      end
     end
 
 
     protected
 
-    # If a module was audited, WulinAudit will audit all the columns, 
-    # You also can control which columns need audit, you need define +AUDIT_COLUMNS+ const
+    # If a module was audited, WulinAudit will audit all the columns automatically, 
+    # You also can control which columns need audit, you need use +audit_columns+ method:
     # 
     #   class Post < ActiveRecord::Base
-    #     AUDIT_COLUMNS = %w(title content category) & column_names
+    #     audit_columns(%w(title content category) & column_names)
+    #     audit_columns :title, :content, :category
+    #     audit_columns 'title', 'content', 'category'
     #   end
     #
+    # Note that, +audit_columns+ will be ignored when audit be rejected by +reject_audit+ method.
     def audit_columns
-      klass = self.class
-      @audit_columns ||= klass.const_defined?("AUDIT_COLUMNS") ? klass::AUDIT_COLUMNS : 
-      (klass.respond_to?(:column_names) ? klass.column_names : (klass.respond_to?(:fields) ? klass.fields.keys : [])) - %w(created_at updated_at)
+      @audit_columns ||= self.class.respond_to?(:_audit_columns) ? self.class._audit_columns : self.class.valid_column_names
     end
 
     def create_audit_log(action, details_content)
