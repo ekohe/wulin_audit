@@ -12,11 +12,27 @@ module WulinAudit
     end
     
     module ClassMethods
+      # WulinAudit will audit all the models automatically; 
+      # if you do not want audit some, use +reject_audit+ method:
+      #   class Post < ActiveRecord::Base
+      #     reject_audit
+      #   end
+      #
       def reject_audit
         cattr_accessor :auditable
         self.auditable = false
       end
       
+      # If a module was audited, WulinAudit will audit all the columns automatically, 
+      # You also can control which columns need audit, you need use +audit_columns+ method:
+      # 
+      #   class Post < ActiveRecord::Base
+      #     audit_columns(%w(title content category) & column_names)
+      #     audit_columns :title, :content, :category
+      #     audit_columns 'title', 'content', 'category'
+      #   end
+      #
+      # Note that, +audit_columns+ will be ignored when audit be rejected by +reject_audit+ method.
       def audit_columns(*columns)
         cattr_accessor :_audit_columns
         self._audit_columns = columns.map(&:to_s) & valid_column_names
@@ -26,6 +42,26 @@ module WulinAudit
       def valid_column_names
         all_valid_column_names = (self.respond_to?(:column_names) ? self.column_names : (self.respond_to?(:fields) ? self.fields.keys : []))
         all_valid_column_names - %w(created_at updated_at)
+      end
+      
+      # Override this method in model to set relation column to the exactly column
+      # Default is +name+, and then +code+, and then is +id+
+      # 
+      #   class Post < ActiveRecord::Base
+      #     human_relation_column :title
+      #   end
+      #
+      def human_relation_column(column_name)
+        cattr_accessor :_human_relation_column
+        self._human_relation_column = column_name.to_s
+      end
+      
+      def nosql?
+        self.respond_to?(:relations)
+      end
+      
+      def sql?
+        self < ActiveRecord::Base
       end
     end
 
@@ -54,12 +90,6 @@ module WulinAudit
       create_audit_log('delete', details)
     end
 
-    # WulinAudit will audit all the models automatically; 
-    # if you do not want audit some, use +reject_audit+ method:
-    #   class Post < ActiveRecord::Base
-    #     reject_audit
-    #   end
-    #
     def auditable?
       if self.class.respond_to?(:auditable)
         self.class.auditable
@@ -70,22 +100,14 @@ module WulinAudit
 
 
     protected
-
-    # If a module was audited, WulinAudit will audit all the columns automatically, 
-    # You also can control which columns need audit, you need use +audit_columns+ method:
-    # 
-    #   class Post < ActiveRecord::Base
-    #     audit_columns(%w(title content category) & column_names)
-    #     audit_columns :title, :content, :category
-    #     audit_columns 'title', 'content', 'category'
-    #   end
-    #
-    # Note that, +audit_columns+ will be ignored when audit be rejected by +reject_audit+ method.
+    
     def audit_columns
       @audit_columns ||= self.class.respond_to?(:_audit_columns) ? self.class._audit_columns : self.class.valid_column_names
     end
 
     def create_audit_log(action, details_content)
+      details_content.merge!(parse_details(details_content))
+      details_content = titleize_column_names(details_content)
       details_content.each do |k,v|
         details_content[k] = v.utc if v.kind_of?(ActiveSupport::TimeWithZone)
       end
@@ -101,6 +123,49 @@ module WulinAudit
     end
 
     private
+    
+    # Parse details for relationed column.
+    def parse_details(details)
+      return new_details unless self.class.sql?
+      
+      relation_columns = details.select { |key, value| key =~ /.*_id$/ }
+      relation_columns.each do |k, v|
+        if relation_klass = get_relation_klass(k)
+          if Array === v
+            relation_columns[k] = relation_klass.find(v).to_a.map{|x| x.send(human_relation_column(relation_klass)) }
+          else
+            relation_columns[k] = relation_klass.find(v).send(human_relation_column)
+          end
+        end
+      end
+      relation_columns
+    end
+    
+    def titleize_column_names(details)
+      details.inject({}){|hash, (k, v)| hash.merge!(k.titleize => v)}
+    end
+    
+    def get_relation_klass(column_name)
+      self.class.reflections.select{|key,value| value.foreign_key == column_name }.values.first.klass
+    rescue
+      nil
+    end
+    
+    def human_relation_column(klass)
+      if klass.respond_to?(:_human_relation_column)
+        klass._human_relation_column
+      else
+        case
+        when klass.column_names.include?('name')
+          'name'
+        when klass.column_names.include?('code')
+          'code'
+        else
+          'id'
+        end
+      end
+    end
+    
     def time_convert(time)
       if time.is_a?(DateTime) or time.is_a?(Time)
         time.utc
