@@ -61,7 +61,7 @@ module WulinAudit
       end
       
       def sql?
-        self < ActiveRecord::Base
+        defined? ::ActiveRecord::Base and self < ::ActiveRecord::Base
       end
     end
 
