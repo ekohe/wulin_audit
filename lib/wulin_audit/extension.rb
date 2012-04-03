@@ -132,9 +132,9 @@ module WulinAudit
       relation_columns.each do |k, v|
         if relation_klass = get_relation_klass(k)
           if Array === v
-            relation_columns[k] = v.map{|x| relation_klass.find(x).send(human_relation_column(relation_klass)) }
+            relation_columns[k] = v.map{|x| x!=nil ? relation_klass.find(x).send(human_relation_column(relation_klass)) : nil }
           else
-            relation_columns[k] = relation_klass.find(v).send(human_relation_column(relation_klass))
+            relation_columns[k] = v.nil? ? nil : relation_klass.find(v).send(human_relation_column(relation_klass))
           end
         end
       end
