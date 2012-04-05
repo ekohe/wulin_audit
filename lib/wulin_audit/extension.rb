@@ -2,7 +2,7 @@ module WulinAudit
   module Extension
     extend ActiveSupport::Concern
 
-    # inject callbacks to the rom model at include
+    # Inject callbacks to the orm model at include
     included do
       class_eval do
         after_create  :audit_created, :if => :auditable?
