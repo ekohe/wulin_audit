@@ -113,8 +113,8 @@ module WulinAudit
       end
 
       WulinAudit::AuditLog.create(
-      :user_id => User.current_user.try(:id),
-      :user_email => User.current_user.try(:email),
+      :user_id => (User.current_user.try(:id) rescue nil),
+      :user_email => (User.current_user.try(:email) rescue nil),
       :record_id => self.id.to_s,
       :action => action,
       :class_name => self.class.name,
