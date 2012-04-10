@@ -1,6 +1,9 @@
 require "wulin_audit/version"
 require 'wulin_audit/engine' if defined? Rails
 
+require 'haml'
+require 'haml-rails'
+
 module WulinAudit; end
 
 require 'wulin_audit/orm/active_record' if defined? ActiveRecord
