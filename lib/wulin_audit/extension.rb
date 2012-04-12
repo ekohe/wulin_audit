@@ -131,18 +131,15 @@ module WulinAudit
       relation_columns = details.select { |key, value| key =~ /.*_id$/ }
       relation_columns.each do |k, v|
         if relation_klass = get_relation_klass(k)
-          if Array === v
-            begin
-              relation_columns[k] = v.map{|x| x!=nil ? relation_klass.find(x).send(human_relation_column(relation_klass)) : nil }
-            rescue ActiveRecord::RecordNotFound
-              relation_columns[k] = v
+          begin
+            if Array === v
+              relation_columns[k] = v.map{|x| x ? relation_klass.find(x).send(human_relation_column(relation_klass)) : nil }
+            else
+              relation_columns[k] = v ? relation_klass.find(v).send(human_relation_column(relation_klass)) : nil
             end
-          else
-            begin
-              relation_columns[k] = v.nil? ? nil : relation_klass.find(v).send(human_relation_column(relation_klass))
-            rescue ActiveRecord::RecordNotFound
-              relation_columns[k] = v
-            end
+          # rescue ActiveRecord::RecordNotFound
+          rescue # Handle all error
+            relation_columns[k] = v
           end
         end
       end
