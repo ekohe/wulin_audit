@@ -120,13 +120,15 @@ module WulinAudit
       :class_name => self.class.name,
       :detail => details_content
       )
+    rescue
+      true
     end
 
     private
     
     # Parse details for relationed column.
     def parse_details(details)
-      return new_details unless self.class.sql?
+      return details unless self.class.sql?
       
       relation_columns = details.select { |key, value| key =~ /.*_id$/ }
       relation_columns.each do |k, v|
