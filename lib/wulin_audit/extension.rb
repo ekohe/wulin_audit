@@ -121,7 +121,9 @@ module WulinAudit
       :detail => details_content
       )
     rescue
-      true
+      logger.fatal '----------------------------------------------------------------'
+      logger.fatal "WARNING: Audit faild!  Error message: #{$!.message}"
+      logger.fatal '----------------------------------------------------------------'
     end
 
     private
