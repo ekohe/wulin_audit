@@ -134,7 +134,11 @@ module WulinAudit
           if Array === v
             relation_columns[k] = v.map{|x| x!=nil ? relation_klass.find(x).send(human_relation_column(relation_klass)) : nil }
           else
-            relation_columns[k] = v.nil? ? nil : relation_klass.find(v).send(human_relation_column(relation_klass))
+            begin
+              relation_columns[k] = v.nil? ? nil : relation_klass.find(v).send(human_relation_column(relation_klass))
+            rescue ActiveRecord::RecordNotFound
+              relation_columns[k] = v
+            end
           end
         end
       end
