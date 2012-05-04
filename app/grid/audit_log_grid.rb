@@ -21,6 +21,7 @@ if defined? WulinMaster
 
     fill_window
 
+    # need to refactor here
     remove_actions :audit, :add, :edit, :update, :delete
 
     path '/audit_logs'    
