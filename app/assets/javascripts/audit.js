@@ -1,15 +1,17 @@
-$(function() {
-  var auditButton;
-  auditButton = $('.toolbar_icon_audit');
-  auditButton.live('click', function(){
-    // Remove all existing dialogs
-    $("#audit_dialog").remove();
+// Audit action
+WulinMaster.actions.Audit = $.extend({}, WulinMaster.actions.BaseAction, {
+  name: 'audit',
 
-    var $dialog, $grid_container, currentGrdi, selectedIds, recordUnit;
-    currentGrid = Ui.findCurrentGrid();
-    selectedIds = Ui.selectIds(currentGrid);
-    if (selectedIds) {
-      recordUnit = selectedIds.split(',').length > 1 ? 'records' : 'record';
+  handler: function() {
+    // Remove all existing dialogs
+    $("#audit_dialog").remove(); 
+
+    var $dialog, $grid_container, currentGrid, selectedIds, recordUnit;
+
+    currentGrid = this.getGrid();
+    selectedIds = currentGrid.getSelectedIds();
+    if (selectedIds.length > 0) {
+      recordUnit = selectedIds.length > 1 ? 'records' : 'record';
 
       $grid_container = $('<div/>')
       .attr({'class': 'grid_record_audit'});
@@ -34,7 +36,7 @@ $(function() {
         create: function(event, ui) {
           $.ajax({
             type:'GET',
-            data: {record_ids: selectedIds, class_name:currentGrid.name},
+            data: {record_ids: selectedIds.join(","), class_name:currentGrid.name},
             url: '/record_audits'
           })
           .success(function(data) { $grid_container.html(data); });
@@ -43,6 +45,7 @@ $(function() {
     } else {
       displayErrorMessage("Please select a record to see it's audit log.");
     }
-  });
-
+  }
 });
+
+WulinMaster.ActionManager.register(WulinMaster.actions.Audit);
