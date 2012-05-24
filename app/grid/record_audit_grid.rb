@@ -3,7 +3,9 @@ if defined? WulinMaster
     title 'Record Audit Logs'
     path '/record_audits' 
 
-    remove_actions :audit, :add, :edit, :update, :delete
+    cell_editable false
+
+    action :filter
 
     def columns
       @columns = super.clone

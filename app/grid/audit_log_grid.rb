@@ -20,9 +20,10 @@ if defined? WulinMaster
     model WulinAudit::AuditLog
 
     fill_window
-
-    # need to refactor here
-    remove_actions :audit, :add, :edit, :update, :delete
+    
+    cell_editable false
+    
+    action :filter
 
     path '/audit_logs'    
 
