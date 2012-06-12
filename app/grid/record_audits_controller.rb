@@ -1,7 +1,7 @@
 if defined? WulinMaster
   class RecordAuditsController < WulinMaster::ScreenController
     controller_for_screen RecordAuditScreen
-    controller_for_grid RecordAuditGrid
+
     add_callback :query_ready, :set_record_id_condition
     add_callback :query_ready, :reset_order
 
