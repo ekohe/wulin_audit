@@ -36,7 +36,7 @@ WulinMaster.actions.Audit = $.extend({}, WulinMaster.actions.BaseAction, {
         create: function(event, ui) {
           $.ajax({
             type:'GET',
-            data: {record_ids: selectedIds.join(","), class_name:currentGrid.name},
+            data: {record_ids: selectedIds.join(","), class_name:currentGrid.model},
             url: '/record_audits'
           })
           .success(function(data) { $grid_container.html(data); });

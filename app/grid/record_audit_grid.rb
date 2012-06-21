@@ -1,6 +1,9 @@
 if defined? WulinMaster
   class RecordAuditGrid < AuditLogGrid
     title 'Record Audit Logs'
+
+    model WulinAudit::AuditLog
+    
     path '/record_audits' 
 
     cell_editable false
