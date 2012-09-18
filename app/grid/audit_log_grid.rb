@@ -24,6 +24,7 @@ if defined? WulinMaster
     cell_editable false
     
     action :filter
+    action :excel
 
     path '/audit_logs'    
 
