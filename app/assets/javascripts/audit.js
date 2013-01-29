@@ -4,7 +4,7 @@ WulinMaster.actions.Audit = $.extend({}, WulinMaster.actions.BaseAction, {
 
   handler: function() {
     // Remove all existing dialogs
-    $("#audit_dialog").remove(); 
+    $("#audit_dialog").remove();
 
     var $dialog, $grid_container, currentGrid, selectedIds, recordUnit;
 
@@ -30,7 +30,7 @@ WulinMaster.actions.Audit = $.extend({}, WulinMaster.actions.BaseAction, {
         buttons: {
           "Ok": function() {
             $(this).dialog("destroy");
-          } 
+          }
         },
         modal: true,
         create: function(event, ui) {
