@@ -26,7 +26,7 @@ if defined? WulinMaster
     action :filter
     action :excel
 
-    path '/audit_logs'    
+    path '/audit_logs'
 
     column :created_at, :width => 150, :label => 'Datetime', :type => 'Datetime', :datetime_format => :db
     column :user_email, :width => 150, :label => 'User'
