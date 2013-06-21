@@ -13,7 +13,7 @@ if defined? WulinMaster
 
     def set_record_id_condition
       if params[:record_ids].present? and params[:class_name].present?
-        @query = @query.where(:class_name => Regexp.new(Regexp.escape(params[:class_name].classify), true), :record_id.in => params[:record_ids].split(',')) 
+        @query = @query.where(:class_name => params[:class_name].classify, :record_id.in => params[:record_ids].split(',')) 
       end
     end
   end
