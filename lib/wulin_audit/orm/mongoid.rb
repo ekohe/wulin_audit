@@ -5,9 +5,7 @@ module Mongoid
   module Document
     
     included do
-      class_eval do
-        include WulinAudit::Extension
-      end
+      include WulinAudit::Extension
     end
     
   end

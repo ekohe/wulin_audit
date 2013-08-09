@@ -4,11 +4,9 @@ module WulinAudit
 
     # Inject callbacks to the orm model at include
     included do
-      class_eval do
-        after_create  :audit_created, :if => :auditable?
-        after_update  :audit_updated, :if => :auditable?
-        after_destroy :audit_deleted, :if => :auditable?
-      end
+      after_create  :audit_created, :if => :auditable?
+      after_update  :audit_updated, :if => :auditable?
+      after_destroy :audit_deleted, :if => :auditable?
     end
     
     module ClassMethods
