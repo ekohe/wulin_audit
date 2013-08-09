@@ -3,6 +3,10 @@ if defined? WulinMaster
   WulinAudit::AuditLog.class_eval do
     include MongoidSupport
 
+    def request_ip
+      read_attribute("request_ip")
+    end
+
     def detail
       detail_hash = read_attribute("detail")
       if action == 'update'
@@ -33,6 +37,7 @@ if defined? WulinMaster
     column :action, :width => 80
     column :class_name, :width => 150, :label => 'Class'
     column :record_id, :width => 70, :label => 'Id'
+    column :request_ip, :width => 150, :label => 'IP'
     column :detail, :width => 500
   end
 
