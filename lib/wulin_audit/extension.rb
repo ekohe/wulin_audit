@@ -6,6 +6,7 @@ module WulinAudit
     included do
       class_eval do
         after_create  :audit_created, :if => :auditable?
+        # before_update  :audit_before_updated, :if => :auditable?
         after_update  :audit_updated, :if => :auditable?
         after_destroy :audit_deleted, :if => :auditable?
       end
@@ -114,6 +115,7 @@ module WulinAudit
 
       WulinAudit::AuditLog.create(
       :user_id => (User.current_user.try(:id) rescue nil),
+      :request_ip => (User.current_user.try(:ip) rescue nil),
       :user_email => (User.current_user.try(:email) rescue nil),
       :record_id => self.id.to_s,
       :action => action,
