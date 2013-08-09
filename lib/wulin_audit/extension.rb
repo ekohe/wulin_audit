@@ -6,7 +6,6 @@ module WulinAudit
     included do
       class_eval do
         after_create  :audit_created, :if => :auditable?
-        # before_update  :audit_before_updated, :if => :auditable?
         after_update  :audit_updated, :if => :auditable?
         after_destroy :audit_deleted, :if => :auditable?
       end
