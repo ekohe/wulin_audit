@@ -3,10 +3,6 @@ if defined? WulinMaster
   WulinAudit::AuditLog.class_eval do
     include MongoidSupport
 
-    def request_ip
-      read_attribute("request_ip")
-    end
-
     def detail
       detail_hash = read_attribute("detail")
       if action == 'update'
