@@ -4,7 +4,7 @@ if defined? WulinMaster
 
     model WulinAudit::AuditLog
     
-    path '/record_audits' 
+    path '/wulin_audit/record_audits'
 
     cell_editable false
 

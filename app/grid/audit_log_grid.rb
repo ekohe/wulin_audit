@@ -13,20 +13,17 @@ if defined? WulinMaster
     end
   end
 
-
   class AuditLogGrid < WulinMaster::Grid
     title 'Audit Logs'
 
     model WulinAudit::AuditLog
 
-    fill_window
-    
     cell_editable false
     
     action :filter
     action :excel
 
-    path '/audit_logs'
+    path '/wulin_audit/audit_logs'
 
     column :created_at, :width => 150, :label => 'Datetime', :type => 'Datetime', :datetime_format => :db
     column :user_email, :width => 150, :label => 'User'
