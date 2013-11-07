@@ -109,11 +109,22 @@ module WulinAudit
       @audit_columns ||= self.class.respond_to?(:_audit_columns) ? self.class._audit_columns : self.class.valid_column_names
     end
 
+    def format_value(value)
+      return value.utc if value.kind_of?(ActiveSupport::TimeWithZone)
+      return value.to_f if value.kind_of?(BigDecimal)
+      value
+    end
+
     def create_audit_log(action, details_content)
       details_content.merge!(parse_details(details_content))
       details_content = titleize_column_names(details_content)
       details_content.each do |k,v|
-        details_content[k] = v.utc if v.kind_of?(ActiveSupport::TimeWithZone)
+        if v.kind_of?(Array)
+          v = v.map {|value| format_value(value)}
+        else
+          v = format_value(v)
+        end
+        details_content[k] = v
       end
 
       if Rails::VERSION::MAJOR <= 4
