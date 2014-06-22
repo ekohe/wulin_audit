@@ -127,19 +127,24 @@ module WulinAudit
         details_content[k] = v
       end
 
-      if Rails::VERSION::MAJOR <= 4
-        details_content = details_content.to_json
-      end
+      attributes = { user_id: (User.current_user.try(:id) rescue nil),
+                     request_ip: (User.current_user.try(:ip) rescue nil),
+                     user_email: (User.current_user.try(:email) rescue nil),
+                     record_id: self.id.to_s,
+                     action: action,
+                     class_name: self.class.name,
+                     detail: details_content }
 
-      WulinAudit::AuditLog.create(
-        user_id: (User.current_user.try(:id) rescue nil),
-        request_ip: (User.current_user.try(:ip) rescue nil),
-        user_email: (User.current_user.try(:email) rescue nil),
-        record_id: self.id.to_s,
-        action: action,
-        class_name: class_name_for_audit,
-        detail: details_content
-      )
+      WulinAudit::AuditLog.create(attributes)
+
+      if APP_CONFIG["wulin_audit"] && APP_CONFIG["wulin_audit"]["influxdb"]
+
+        unless defined?(@@influxdb)
+          @@influxdb = InfluxDB::Client.new APP_CONFIG["wulin_audit"]["influxdb"]["database"], APP_CONFIG["wulin_audit"]["influxdb"]["connection"]
+        end
+
+        @@influxdb.write_point('activity', attributes.merge(:value => 1).except(:detail))
+      end
     rescue
       logger.fatal '----------------------------------------------------------------'
       logger.fatal "WARNING: Audit failed!  Error message: #{$!.message}"
