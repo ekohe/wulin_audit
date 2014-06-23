@@ -140,7 +140,7 @@ module WulinAudit
       if APP_CONFIG["wulin_audit"] && APP_CONFIG["wulin_audit"]["influxdb"]
 
         unless defined?(@@influxdb)
-          @@influxdb = InfluxDB::Client.new APP_CONFIG["wulin_audit"]["influxdb"]["database"], APP_CONFIG["wulin_audit"]["influxdb"]["connection"]
+          @@influxdb = InfluxDB::Client.new APP_CONFIG["wulin_audit"]["influxdb"]["database"], APP_CONFIG["wulin_audit"]["influxdb"]["connection"].symbolize_keys
         end
 
         @@influxdb.write_point('activity', attributes.merge(:value => 1).except(:detail))
