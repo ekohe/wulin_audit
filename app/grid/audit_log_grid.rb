@@ -1,7 +1,7 @@
 if defined? WulinMaster
-  require 'wulin_audit/mongoid_support'
+  # require 'wulin_audit/mongoid_support'
   WulinAudit::AuditLog.class_eval do
-    include MongoidSupport
+    # include MongoidSupport
 
     def detail
       detail_hash = read_attribute("detail")
