@@ -19,9 +19,6 @@ if defined? WulinMaster
     model WulinAudit::AuditLog
 
     cell_editable false
-    
-    action :filter
-    action :excel
 
     path '/wulin_audit/audit_logs'
 
@@ -32,6 +29,7 @@ if defined? WulinMaster
     column :record_id, :width => 70, :label => 'Id'
     column :request_ip, :width => 150, :label => 'IP'
     column :detail, :width => 500
-  end
 
+    action :export
+  end
 end
