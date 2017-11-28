@@ -22,7 +22,6 @@ WulinMaster.actions.Audit = $.extend({}, WulinMaster.actions.BaseAction, {
         })
         .success(function(data) {
           modal.find('.modal-content').css('padding', '0').html(data);
-          modal.find('.modal-footer').remove();
           self.setGridHeightInModal(modal);
         });
       }
