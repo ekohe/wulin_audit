@@ -71,7 +71,7 @@ module WulinAudit
     end
 
     def audit_updated
-      changes = self.changes.presence || self.previous_changes.presence
+      changes = self.saved_changes.presence || self.previous_changes.presence
       if changes and (changes.keys & audit_columns).present?
         details = changes.reject{ |k,v| audit_columns.exclude?(k) }
         valid_details = {}
@@ -123,7 +123,7 @@ module WulinAudit
       )
     rescue
       logger.fatal '----------------------------------------------------------------'
-      logger.fatal "WARNING: Audit faild!  Error message: #{$!.message}"
+      logger.fatal "WARNING: Audit failed!  Error message: #{$!.message}"
       logger.fatal '----------------------------------------------------------------'
     end
 
