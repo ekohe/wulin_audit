@@ -5,6 +5,9 @@ if defined? WulinMaster
 
     def detail
       detail_hash = read_attribute("detail")
+      if Rails::VERSION::MAJOR <= 4
+        detail_hash = JSON.parse(detail_hash)
+      end
       if action == 'update'
         detail_hash.inject([]){|d, h| d << "'#{h[0].titleize}' changed from '#{h[1][0]}'  to '#{h[1][1]}'" }.join(', ')
       else

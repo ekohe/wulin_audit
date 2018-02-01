@@ -71,7 +71,11 @@ module WulinAudit
     end
 
     def audit_updated
-      changes = self.saved_changes.presence || self.previous_changes.presence
+      changes = if Rails::VERSION::MAJOR >= 4
+        self.saved_changes.presence || self.previous_changes.presence
+      else
+        self.changes.presence || self.previous_changes.presence
+      end
       if changes and (changes.keys & audit_columns).present?
         details = changes.reject{ |k,v| audit_columns.exclude?(k) }
         valid_details = {}
@@ -91,7 +95,7 @@ module WulinAudit
     def auditable?
       if self.class.respond_to?(:auditable)
         self.class.auditable
-      elsif self.class == ActiveRecord::SchemaMigration
+      elsif self.class.to_s == 'ActiveRecord::SchemaMigration'
         false
       else
         true
@@ -112,14 +116,18 @@ module WulinAudit
         details_content[k] = v.utc if v.kind_of?(ActiveSupport::TimeWithZone)
       end
 
+      if Rails::VERSION::MAJOR <= 4
+        details_content = details_content.to_json
+      end
+
       WulinAudit::AuditLog.create(
-      :user_id => (User.current_user.try(:id) rescue nil),
-      :request_ip => (User.current_user.try(:ip) rescue nil),
-      :user_email => (User.current_user.try(:email) rescue nil),
-      :record_id => self.id.to_s,
-      :action => action,
-      :class_name => self.class.name,
-      :detail => details_content
+        user_id: (User.current_user.try(:id) rescue nil),
+        request_ip: (User.current_user.try(:ip) rescue nil),
+        user_email: (User.current_user.try(:email) rescue nil),
+        record_id: self.id.to_s,
+        action: action,
+        class_name: self.class.name,
+        detail: details_content
       )
     rescue
       logger.fatal '----------------------------------------------------------------'
@@ -185,7 +193,5 @@ module WulinAudit
         time
       end
     end
-
-
   end
 end
