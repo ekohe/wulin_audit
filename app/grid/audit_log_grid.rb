@@ -33,7 +33,7 @@ if defined? WulinMaster
     column :request_ip, :width => 150, :label => 'IP'
     column :detail, :width => 500
 
-    if WulinMaster::GridActions::ORIGINAL_ACTIONS
+    if defined? WulinMaster::GridActions::ORIGINAL_ACTIONS
       action :excel
       action :filter
     else
