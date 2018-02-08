@@ -21,4 +21,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'bson_ext'
   s.add_dependency 'haml'
   s.add_dependency 'haml-rails'
+  s.add_dependency 'mongo'
 end
