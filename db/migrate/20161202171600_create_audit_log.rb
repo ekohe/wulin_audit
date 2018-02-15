@@ -1,4 +1,4 @@
-class CreateAuditLog < ActiveRecord::Migration[5.0]
+class CreateAuditLog < (Rails::VERSION::MAJOR >= 4 ? ActiveRecord::Migration[5.0] : ActiveRecord::Migration)
   def change
     return if table_exists?(:audit_logs)
 
@@ -9,7 +9,7 @@ class CreateAuditLog < ActiveRecord::Migration[5.0]
       t.string  :record_id
       t.string  :action
       t.string  :class_name
-      t.jsonb   :detail
+      t.column  :detail, :jsonb
       t.timestamps
     end
     add_index :audit_logs, [:user_id, :record_id]
