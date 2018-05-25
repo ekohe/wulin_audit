@@ -10,7 +10,11 @@ class WulinMaster::Grid
 end
 
 # Add audit button to grid as default toolbar choose, set default icon from https://material.io/icons/
-WulinMaster::Grid.add_default_action :audit, icon: :restore
+if WulinMaster::Grid.method(:add_default_action).parameters.size > 1
+  WulinMaster::Grid.add_default_action :audit, icon: :restore
+else # Support old versions of wulin_master
+  WulinMaster::Grid.add_default_action :audit
+end
 
 WulinMaster::add_javascript 'audit.js'
 WulinMaster::add_stylesheet 'audit.css'
