@@ -142,12 +142,12 @@ module WulinAudit
         url = "/write?consistency=all&db=#{APP_CONFIG["wulin_audit"]["influxdb"]["database"]}&precision=s&rp="
 
         # Tags
-        influx_tags = attributes.except("detail", "record_id", "created_at", "updated_at", "_id")
+        influx_tags = attributes.except(:detail, :record_id)
         tags = influx_tags.keys.map{|k| "#{k}=#{influx_tags[k]}" }.join(",")
 
         # Fields
-        influx_fields = {"record_id" => attributes["record_id"], "value" => 1}
-        fields = influx_fields.keys.map{|k| "#{k}=#{influx_fields[k]}" }.join(",")
+        influx_fields = {"record_id" => attributes[:record_id], "value" => 1}
+        fields = influx_fields.keys.map{|k| "#{k}=#{influx_fields[k].is_a?(String) ? influx_fields[k].inspect : influx_fields[k]}" }.join(",")
 
         line = "activity,#{tags} #{fields}"
         request = Net::HTTP::Post.new(url, { "Content-Type" => "application/octet-stream" })
