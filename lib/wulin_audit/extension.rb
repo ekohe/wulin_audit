@@ -138,12 +138,21 @@ module WulinAudit
       WulinAudit::AuditLog.create(attributes)
 
       if APP_CONFIG["wulin_audit"] && APP_CONFIG["wulin_audit"]["influxdb"]
+        http = Net::HTTP.new(APP_CONFIG["wulin_audit"]["influxdb"]["host"], APP_CONFIG["wulin_audit"]["influxdb"]["port"])
+        url = "/write?consistency=all&db=#{APP_CONFIG["wulin_audit"]["influxdb"]["database"]}&precision=s&rp="
 
-        unless defined?(@@influxdb)
-          @@influxdb = InfluxDB::Client.new APP_CONFIG["wulin_audit"]["influxdb"]["database"], APP_CONFIG["wulin_audit"]["influxdb"]["connection"].symbolize_keys
-        end
+        # Tags
+        influx_tags = attributes.except("detail", "record_id", "created_at", "updated_at", "_id")
+        tags = influx_tags.keys.map{|k| "#{k}=#{influx_tags[k]}" }.join(",")
 
-        @@influxdb.write_point('activity', attributes.merge(:value => 1).except(:detail))
+        # Fields
+        influx_fields = {"record_id" => attributes["record_id"], "value" => 1}
+        fields = influx_fields.keys.map{|k| "#{k}=#{influx_fields[k]}" }.join(",")
+
+        line = "activity,#{tags} #{fields}"
+        request = Net::HTTP::Post.new(url, { "Content-Type" => "application/octet-stream" })
+        request.body = line
+        response = http.request(request)
       end
     rescue
       logger.fatal '----------------------------------------------------------------'
