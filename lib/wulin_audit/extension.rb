@@ -143,16 +143,22 @@ module WulinAudit
 
         # Tags
         influx_tags = attributes.except(:detail, :record_id)
-        tags = influx_tags.keys.map{|k| "#{k}=#{influx_tags[k]}" }.join(",")
+        tags = influx_tags.keys.map{|k| influx_tags[k].nil? ? nil : "#{k}=#{line_escape(influx_tags[k].is_a?(String) ? influx_tags[k].inspect : influx_tags[k])}" }.compact.join(",")
 
         # Fields
-        influx_fields = {"record_id" => attributes[:record_id], "value" => 1}
-        fields = influx_fields.keys.map{|k| "#{k}=#{influx_fields[k].is_a?(String) ? influx_fields[k].inspect : influx_fields[k]}" }.join(",")
+        influx_fields = {"record_id" => attributes[:record_id].to_i, "value" => 1}
+        fields = influx_fields.keys.map{|k| influx_fields[k].nil? ? nil : "#{k}=#{line_escape(influx_fields[k].is_a?(String) ? influx_fields[k].inspect : influx_fields[k])}" }.compact.join(",")
 
-        line = "activity,#{tags} #{fields}"
+        tags = "," + tags if tags.size > 0
+        line = "activity#{tags} #{fields}"
         request = Net::HTTP::Post.new(url, { "Content-Type" => "application/octet-stream" })
         request.body = line
         response = http.request(request)
+        if response.code != '204'
+          Rails.logger.warn "Write to InfluxDB failed:"
+          Rails.logger.warn line
+          Rails.logger.warn response.body
+        end
       end
     rescue
       logger.fatal '----------------------------------------------------------------'
@@ -165,6 +171,11 @@ module WulinAudit
     end
 
     private
+
+    def line_escape(string)
+      return string unless string.is_a?(String)
+      string.gsub(" ", "\ ").gsub("=", "\=").gsub(",", "\,")
+    end
 
     # Parse details for relationed column.
     def parse_details(details)
