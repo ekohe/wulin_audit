@@ -143,7 +143,7 @@ module WulinAudit
 
         # Tags
         influx_tags = attributes.except(:detail, :record_id)
-        tags = influx_tags.keys.map{|k| influx_tags[k].nil? ? nil : "#{k}=#{line_escape(influx_tags[k].is_a?(String) ? influx_tags[k].inspect : influx_tags[k])}" }.compact.join(",")
+        tags = influx_tags.keys.map{|k| influx_tags[k].nil? ? nil : "#{k}=#{line_escape(influx_tags[k])}" }.compact.join(",")
 
         # Fields
         influx_fields = {"record_id" => attributes[:record_id].to_i, "value" => 1}
