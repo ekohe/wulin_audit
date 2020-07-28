@@ -60,7 +60,7 @@
     end
     ```
 
-   Note that, `audit_columns` will be ignored when audit be rejected by +reject_audit+ method
+   Note that, `audit_columns` will be ignored when audit be rejected by `reject_audit` method
 
 ## Work with WulinMaster
 
