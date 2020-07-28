@@ -25,12 +25,12 @@ WulinMaster.actions.Audit = $.extend({}, WulinMaster.actions.BaseAction, {
 
     if (typeof Ui.headerModal === 'function') {
       Ui.headerModal(title, {
-        ready: function(modal, trigger) {
-          $.ajax(ajaxOption).success(function(data) {
+        onOpenStart: function (modal, trigger) {
+          $.ajax(ajaxOption).success(function (data) {
             modal.find('.modal-content').css('padding', '0').html(data);
             self.setGridHeightInModal(modal);
           });
-        }
+        },
       });
     } else {
       $('<div/>')
