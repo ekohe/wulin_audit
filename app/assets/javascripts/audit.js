@@ -22,13 +22,12 @@ WulinMaster.actions.Audit = $.extend({}, WulinMaster.actions.BaseAction, {
     }
 
     $gridContainer = $('<div/>').addClass('grid_record_audit');
-
     if (typeof Ui.headerModal === 'function') {
       Ui.headerModal(title, {
         onOpenStart: function (modal, trigger) {
           $.ajax(ajaxOption).success(function (data) {
-            modal.find('.modal-content').css('padding', '0').html(data);
-            self.setGridHeightInModal(modal);
+            $(modal).find('.modal-content').css('padding', '0').html(data);
+            self.setGridHeightInModal($(modal));
           });
         },
       });
