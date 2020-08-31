@@ -15,6 +15,3 @@ if WulinMaster::Grid.method(:add_default_action).parameters.size > 1
 else # Support old versions of wulin_master
   WulinMaster::Grid.add_default_action :audit
 end
-
-WulinMaster::add_javascript 'audit.js'
-WulinMaster::add_stylesheet 'audit.css'
