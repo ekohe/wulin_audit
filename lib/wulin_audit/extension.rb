@@ -164,7 +164,7 @@ module WulinAudit
     end
 
     def get_relation_klass(column_name)
-      self.class.reflections.select{|key,value| value.foreign_key == column_name }.values.first.klass
+      self.class.reflections.select{|key,value| value.foreign_key.to_s == column_name.to_s }.values.first.klass
     rescue
       nil
     end
