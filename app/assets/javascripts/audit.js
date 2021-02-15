@@ -17,7 +17,7 @@ WulinMaster.actions.Audit = $.extend({}, WulinMaster.actions.BaseAction, {
     }
 
     if (selectedIds.length < 1) {
-      displayErrorMessage("Please select a record to see it's audit log.");
+      displayErrorMessage("Please select a record to see its audit log.");
       return false;
     }
 
