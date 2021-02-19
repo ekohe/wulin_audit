@@ -16,7 +16,7 @@ if defined? WulinMaster
     end
 
     def format_detail(change)
-      # change #=> [["Data", [{a: 1, b: 2, c: 3}, {a: 2, b: 2, d: 4}]]]
+      # change #=> ["Data", [{a: 1, b: 2, c: 3}, {a: 2, b: 2, d: 4}]]
       changed_field = change[0].titleize
       original_value = change[1][0]
       current_value = change[1][1]
@@ -34,13 +34,13 @@ if defined? WulinMaster
 
         stringified_detail = []
         added_k_v.each do |k, v|
-          stringified_detail.push("#{changed_field}[#{k}] changed from NULL to #{v}")
+          stringified_detail.push("'#{changed_field}[#{k}]' changed from 'NULL' to '#{v}'")
         end
         removed_k_v.each do |k, v|
-          stringified_detail.push("#{changed_field}[#{k}] changed from #{v} to NULL")
+          stringified_detail.push("'#{changed_field}[#{k}]' changed from '#{v}' to 'NULL'")
         end
         modified_k_v.each do |k, v|
-          stringified_detail.push("#{changed_field}[#{k}] changed from #{original_value[k]} to #{v}")
+          stringified_detail.push("'#{changed_field}[#{k}]' changed from '#{original_value[k]}' to '#{v}'")
         end
         stringified_detail.join(", ")
       else
