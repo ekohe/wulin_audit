@@ -126,13 +126,17 @@ module WulinAudit
         user_email: (User.current_user.try(:email) rescue nil),
         record_id: self.id.to_s,
         action: action,
-        class_name: self.class.name,
+        class_name: class_name_for_audit,
         detail: details_content
       )
     rescue
       logger.fatal '----------------------------------------------------------------'
       logger.fatal "WARNING: Audit failed!  Error message: #{$!.message}"
       logger.fatal '----------------------------------------------------------------'
+    end
+
+    def class_name_for_audit
+      self.class.respond_to?(:audit_class_name) ? self.class.audit_class_name : self.class.name
     end
 
     private
