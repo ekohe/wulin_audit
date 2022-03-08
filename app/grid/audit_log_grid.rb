@@ -19,7 +19,7 @@ if defined? WulinMaster
       # change #=> ["Data", [{a: 1, b: 2, c: 3}, {a: 2, b: 2, d: 4}]]
       changed_field = change[0].titleize
       original_value = change[1][0]
-      current_value = change[1][1]
+      current_value = change[1][1] || {}
       return if change.blank?
       case change[1][0]
       when Hash
