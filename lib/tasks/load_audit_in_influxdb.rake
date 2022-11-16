@@ -17,7 +17,7 @@ namespace :wulin_audit do
       url = "/write?consistency=all&db=#{APP_CONFIG["wulin_audit"]["influxdb"]["database"]}&precision=s&rp="
 
       # Tags
-      influx_tags = attributes.except(:detail, :record_id, :created_at, :updated_at)
+      influx_tags = attributes.except(:id, :detail, :record_id, :created_at, :updated_at)
       tags = influx_tags.keys.map{|k| influx_tags[k].nil? ? nil : "#{k}=#{line_escape(influx_tags[k])}" }.compact.join(",")
 
       # Fields
