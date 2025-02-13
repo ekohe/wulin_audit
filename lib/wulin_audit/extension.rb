@@ -197,9 +197,13 @@ module WulinAudit
     end
 
     def get_relation_klass(column_name)
-      self.class.reflections.select{|key,value| value.foreign_key.to_s == column_name.to_s }.values.first.klass
-    rescue
-      nil
+      self.class.reflections.find do |key, value|
+        begin
+          value.foreign_key.to_s == column_name.to_s
+        rescue
+          nil
+        end
+      end.last&.klass
     end
 
     def human_relation_column(klass)
