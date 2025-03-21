@@ -203,7 +203,7 @@ module WulinAudit
         rescue
           nil
         end
-      end.last&.klass
+      end&.last&.klass
     end
 
     def human_relation_column(klass)
