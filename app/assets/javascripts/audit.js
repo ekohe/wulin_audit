@@ -9,7 +9,7 @@ WulinMaster.actions.Audit = $.extend({}, WulinMaster.actions.BaseAction, {
     currentGrid = this.getGrid();
     selectedIds = currentGrid.getSelectedIds();
     recordUnit = selectedIds.length > 1 ? 'records' : 'record';
-    title = 'Audit logs for ' + recordUnit + ' with id: ' + selectedIds;
+    title = 'ID: ' + selectedIds + ' の ' + recordUnit + ' に対する監査ログ';
     ajaxOption = {
       type:'GET',
       data: {record_ids: selectedIds.join(','), class_name: currentGrid.model},
@@ -17,7 +17,7 @@ WulinMaster.actions.Audit = $.extend({}, WulinMaster.actions.BaseAction, {
     }
 
     if (selectedIds.length < 1) {
-      displayErrorMessage("Please select a record to see its audit log.");
+      displayErrorMessage("監査ログを表示するには、レコードを選択してください。");
       return false;
     }
 

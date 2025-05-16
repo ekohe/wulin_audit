@@ -1,6 +1,6 @@
 if defined? WulinMaster
   class RecordAuditGrid < AuditLogGrid
-    title 'Record Audit Logs'
+    title '監査ログ'
 
     model WulinAudit::AuditLog
 
