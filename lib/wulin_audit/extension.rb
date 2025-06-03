@@ -197,13 +197,24 @@ module WulinAudit
     end
 
     def get_relation_klass(column_name)
-      self.class.reflections.find do |key, value|
+      reflection = self.class.reflections.find do |key, value|
         begin
           value.foreign_key.to_s == column_name.to_s
         rescue
           nil
         end
-      end&.last&.klass
+      end&.last
+
+      return nil unless reflection
+
+      if reflection.polymorphic?
+        # For polymorphic associations, get the class from the type column
+        type_column = reflection.foreign_type
+        type_value = self.send(type_column)
+        type_value&.constantize
+      else
+        reflection.klass
+      end
     end
 
     def human_relation_column(klass)
