@@ -3,6 +3,20 @@ if defined? WulinMaster
   WulinAudit::AuditLog.class_eval do
     # include MongoidSupport
 
+    def detail_json
+      detail_content = read_attribute("detail")
+      # Ensure we return valid JSON string, not Ruby hash syntax
+      if Rails::VERSION::MAJOR <= 4
+        detail_content = JSON.parse(detail_content) if detail_content.is_a?(String)
+      end
+      # Convert to proper JSON format (handles both Hash and String input)
+      if detail_content.is_a?(Hash) || detail_content.is_a?(Array)
+        detail_content.to_json
+      else
+        detail_content
+      end
+    end
+
     def detail
       detail_content = read_attribute("detail")
       if Rails::VERSION::MAJOR <= 4
@@ -60,13 +74,14 @@ if defined? WulinMaster
 
     path '/wulin_audit/audit_logs'
 
-    column :created_at, :width => 150, :label => 'Datetime', :type => 'Datetime', :datetime_format => :db
+    column :created_at, :width => 150, :label => 'Datetime', :type => 'Datetime'
     column :user_email, :width => 150, :label => 'User'
     column :action, :width => 80
     column :class_name, :width => 150, :label => 'Class'
     column :record_id, :width => 70, :label => 'Id'
     column :request_ip, :width => 150, :label => 'IP'
-    column :detail, :width => 500
+    column :detail, :width => 500, :type => 'string'
+    column :detail_json, :width => 0, :label => '', :sortable => false, :type => 'string'
 
     if defined? WulinMaster::GridActions::ORIGINAL_ACTIONS
       action :excel

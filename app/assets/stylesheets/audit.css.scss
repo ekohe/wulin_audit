@@ -1,3 +1,142 @@
 .toolbar_icon_audit {
   background: image-url('audit.png') no-repeat top center
 }
+
+// Audit detail modal styles - compact version
+.audit-detail-modal {
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.audit-change-group {
+  margin: 0;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 12px 16px;
+  background: white;
+  
+  &:nth-child(odd) {
+    background: #fafafa;
+  }
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &:hover {
+    background: #f5f5f5;
+  }
+}
+
+.audit-field-name {
+  margin: 0 0 8px 0;
+  padding: 0;
+  color: #1976D2;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+}
+
+.audit-comparison {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+
+.audit-before,
+.audit-after {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: 3px;
+  background: white;
+  border: 1px solid #ddd;
+  font-size: 12px;
+}
+
+.audit-before {
+  border-left: 3px solid #f44336;
+  background: #fff5f5;
+  
+  .audit-label {
+    color: #d32f2f;
+  }
+}
+
+.audit-after {
+  border-left: 3px solid #4caf50;
+  background: #f1f8f4;
+  
+  .audit-label {
+    color: #388e3c;
+  }
+}
+
+.audit-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 4px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.audit-value {
+  font-size: 12px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  word-break: break-word;
+  color: #333;
+  
+  pre {
+    background: rgba(0, 0, 0, 0.05);
+    padding: 6px;
+    border-radius: 3px;
+    overflow-x: auto;
+    margin: 0;
+    font-size: 11px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    line-height: 1.3;
+    max-height: 150px;
+    overflow-y: auto;
+  }
+}
+
+.audit-arrow {
+  font-size: 16px;
+  color: #757575;
+  font-weight: bold;
+  flex-shrink: 0;
+  align-self: center;
+  
+  @media (max-width: 768px) {
+    transform: rotate(90deg);
+  }
+}
+
+.audit-message {
+  font-size: 15px;
+  color: #666;
+  font-weight: 500;
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #e3f2fd;
+  border-radius: 4px;
+  border-left: 4px solid #2196F3;
+}
+
+// Cursor pointer for double-clickable rows
+.grid_record_audit .slick-row,
+.grid_audit_log .slick-row {
+  cursor: pointer;
+  
+  &:hover {
+    background-color: #f5f5f5 !important;
+  }
+}
