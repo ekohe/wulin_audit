@@ -10,7 +10,11 @@ if defined? WulinMaster
 
     def columns
       @columns = super.clone
-      @columns.delete_if {|c| c.name.to_s =~ /^class_name$|^record_id$/}
+      # Remove record_id but keep class_name (hidden) for translations
+      @columns.delete_if {|c| c.name.to_s =~ /^record_id$/}
+      # Hide class_name but keep it in the data
+      class_name_col = @columns.find {|c| c.name.to_s == 'class_name'}
+      class_name_col.options[:width] = 0 if class_name_col
       @columns
     end
   end
