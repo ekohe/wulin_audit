@@ -60,7 +60,18 @@ if defined? WulinMaster
 
     path '/wulin_audit/audit_logs'
 
-    column :created_at, :width => 150, :label => 'Datetime', :type => 'Datetime', :datetime_format => :db
+    column :created_at, width: 150, label: 'Datetime (UTC)', type: 'Datetime', datetime_format: :with_seconds, time_zone: 'UTC'
+    column :created_at_local,
+           width: 150,
+           label: 'Datetime',
+           type: 'Datetime',
+           datetime_format: :with_seconds,
+           source: :created_at,
+           id: :created_at_local,
+           field: :created_at_local,
+           sort_column: :created_at_local,
+           sql_expression: 'audit_logs.created_at',
+           sql_type: :datetime
     column :user_email, :width => 150, :label => 'User'
     column :action, :width => 80
     column :class_name, :width => 150, :label => 'Class'
