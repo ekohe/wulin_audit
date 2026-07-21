@@ -6,13 +6,15 @@ Gem::Specification.new do |s|
   s.version = WulinAudit::VERSION
   s.authors = ["ekohe"]
   s.email = ["dev@ekohe.com"]
-  s.homepage = ""
+  s.homepage = "https://github.com/ekohe/wulin_audit"
   s.summary = "Audit extension for WulinMaster"
   s.description = "Audit extension for WulinMaster"
 
   s.files = `git ls-files`.split("\n")
   s.executables = `git ls-files -- bin/*`.split("\n").map { |f| File.basename(f) }
   s.require_paths = ["lib"]
+
+  s.required_ruby_version = ">= 2.7"
 
   s.add_development_dependency "standard"
 end
