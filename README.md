@@ -1,77 +1,100 @@
 # WulinAudit
 
-## How to Use
+Automatic audit logging for Rails + ActiveRecord. Every create, update, and delete is recorded with the user, IP address, and a detailed change log — no per-model setup required.
 
-1. WulinAudit is depends on mongoDB database, before use it you need install mongodb.
+## Installation
 
-   On Mac OS X using Homebrew:
+Add to your Gemfile:
 
-     ```shell
-     brew install mongodb
-     ```
+```ruby
+gem 'wulin_audit'
+```
 
-   On Ubuntu & Debian:
-   please read the installation from mongoDB Official Website : {Ubuntu and Debian packages}[www.mongodb.org/display/DOCS/Ubuntu+and+Debian+packages].
+Run:
 
-2. Put `gem wulin_audit` to your Gemfile:
+```shell
+bundle install
+rails db:migrate
+```
 
-    ```ruby
-    gem wulin_audit
-    ```
+The engine auto-loads its migration. All ActiveRecord models are audited by default.
 
-3. Run bundler command to install the gem:
+## How It Works
 
-    ```shell
-    bundle install
-    ```
+WulinAudit includes itself into `ActiveRecord::Base` via `after_create`, `after_update`, and `after_destroy` callbacks. Each audited action writes a `WulinAudit::AuditLog` record with:
 
-4. Now, you have **_WulinAudit::AuditLogsController_** and **_WulinAudit::AuditLog_** model, and it will audit all the models automatically.
+| Column       | Description                              |
+|--------------|------------------------------------------|
+| `user_id`    | `User.current_user.try(:id)`             |
+| `user_email` | `User.current_user.try(:email)`          |
+| `request_ip` | `User.current_user.try(:ip)`             |
+| `record_id`  | ID of the audited record                 |
+| `action`     | `create`, `update`, or `delete`          |
+| `class_name` | Class name of the audited record         |
+| `detail`     | JSONB hash of changes                    |
 
-   Attributes in `WulinAudit::AuditLog`:
+Your application must implement `User.current_user` returning an object that responds to `id`, `email`, and `ip`.
 
-    ```ruby
-    user_id    # current user's id, equal to +User.current_user.try(:id)+
-    user_email # current user's email, equal to +User.current_user.try(:email)+
-    record_id  # id for record which was audited.
-    action     # current action name
-    class_name # class name for record which was audited
-    detail     # changes detail.
-    ```
+## Excluding Models
 
-   WulinAudit will audit all the models automatically;
-   if you do not want audit some, use +reject_audit+ method:
+```ruby
+class Session < ActiveRecord::Base
+  reject_audit
+end
+```
 
-    ```ruby
-    class Post < ActiveRecord::Base
-      reject_audit
-    end
-    ```
+## Restricting Audited Columns
 
-   the `Post` model will skip audit.
+By default all columns are audited (except `created_at` and `updated_at`). To restrict:
 
-   If a module was audited, WulinAudit will audit all the columns automatically,
-   You also can control which columns need audit, you need use `audit_columns` method:
+```ruby
+class Post < ActiveRecord::Base
+  audit_columns :title, :content, :category
+end
+```
 
-    ```ruby
-    class Post < ActiveRecord::Base
-      audit_columns(%w(title content category) & column_names)
-      audit_columns :title, :content, :category
-      audit_columns 'title', 'content', 'category'
-    end
-    ```
+Ignored when `reject_audit` is set.
 
-   Note that, `audit_columns` will be ignored when audit be rejected by `reject_audit` method
+## Customizing Relation Display
 
-## Work with WulinMaster
+When a foreign key changes, the audit log resolves it to a human-readable value. By default it looks for `name`, then `code`, then `id` on the related record. To override:
 
-**_[WulinMaster](https://github.com/wulin/wulin_master)_** is a grid gem base on [SlickGrid](https://github.com/mleibman/SlickGrid).
-It provide powerfull generator and other tools to make grids easy to build.
-WulinAudit support WulinMaster well. if you use WulinMaster gem,it will support it automatically.
+```ruby
+class Department < ActiveRecord::Base
+  human_relation_column :title
+end
+```
+
+## WulinMaster Integration
+
+If [WulinMaster](https://github.com/ekohe/wulin_master) is loaded, WulinAudit automatically:
+
+- Adds an **Audit** toolbar action to grids (requires `record_audit#read` permission)
+- Provides `AuditLogScreen` at `/wulin_audit/audit_logs` for browsing all audit logs
+- Provides `RecordAuditScreen` at `/wulin_audit/record_audits` for per-record audit history
+
+## InfluxDB Integration (Optional)
+
+To also push audit events to InfluxDB, configure in your `APP_CONFIG`:
+
+```yaml
+wulin_audit:
+  influxdb:
+    host: localhost
+    port: 8086
+    database: audit
+```
+
+To backfill existing logs into InfluxDB:
+
+```shell
+rails wulin_audit:load_audit_in_influxdb
+```
 
 ## Contributing
 
-Jimmy, Xuhao and Maxime Guilbot from Ekohe, inc.
+Jimmy, Xuhao, and Maxime Guilbot from [Ekohe](https://ekohe.com).
 
 ## License
 
-WulinOAuth is released under the MIT license.
+WulinAudit is released under the MIT license.
