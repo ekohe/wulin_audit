@@ -5,7 +5,7 @@ module WulinAudit
     engine_name :wulin_audit
 
     initializer "add assets to precompile" do |app|
-       app.config.assets.precompile += %w( audit.css audit.js audit.png)
+      app.config.assets.precompile += %w[audit.css audit.js audit.png]
     end
 
     initializer :append_migrations do |app|

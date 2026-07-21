@@ -1,4 +1,4 @@
-require "wulin_audit/extension" 
+require "wulin_audit/extension"
 
 class ActiveRecord::Base
   include WulinAudit::Extension

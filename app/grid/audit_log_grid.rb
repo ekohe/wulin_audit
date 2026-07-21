@@ -8,8 +8,8 @@ if defined? WulinMaster
       if Rails::VERSION::MAJOR <= 4
         detail_content = JSON.parse(detail_content)
       end
-      if action == 'update'
-        detail_content.map{ |change| format_detail(change) }.join(', ')
+      if action == "update"
+        detail_content.map { |change| format_detail(change) }.join(", ")
       else
         detail_content.to_s
       end
@@ -30,9 +30,9 @@ if defined? WulinMaster
         # added_k_v #=> {d: 4}
         # removed_k_v #=> {c: 3}
         # modified_k_v #=> {a: 2} not {a: 1}
-        added_k_v = current_value.select{ |k| !original_value.has_key?(k) }
-        removed_k_v = original_value.select{ |k| !current_value.has_key?(k) }
-        modified_k_v = current_value.select{ |k| original_value.has_key?(k) && original_value[k] != current_value[k] }
+        added_k_v = current_value.select { |k| !original_value.has_key?(k) }
+        removed_k_v = original_value.select { |k| !current_value.has_key?(k) }
+        modified_k_v = current_value.select { |k| original_value.has_key?(k) && original_value[k] != current_value[k] }
 
         stringified_detail = []
         added_k_v.each do |k, v|
@@ -52,32 +52,32 @@ if defined? WulinMaster
   end
 
   class AuditLogGrid < WulinMaster::Grid
-    title 'Audit Logs'
+    title "Audit Logs"
 
     model WulinAudit::AuditLog
 
     cell_editable false
 
-    path '/wulin_audit/audit_logs'
+    path "/wulin_audit/audit_logs"
 
-    column :created_at, width: 150, label: 'Datetime (UTC)', type: 'Datetime', datetime_format: :with_seconds, time_zone: 'UTC'
+    column :created_at, width: 150, label: "Datetime (UTC)", type: "Datetime", datetime_format: :with_seconds, time_zone: "UTC"
     column :created_at_local,
-           width: 150,
-           label: 'Datetime',
-           type: 'Datetime',
-           datetime_format: :with_seconds,
-           source: :created_at,
-           id: :created_at_local,
-           field: :created_at_local,
-           sort_column: :created_at_local,
-           sql_expression: 'audit_logs.created_at',
-           sql_type: :datetime
-    column :user_email, :width => 150, :label => 'User'
-    column :action, :width => 80
-    column :class_name, :width => 150, :label => 'Class'
-    column :record_id, :width => 70, :label => 'Id'
-    column :request_ip, :width => 150, :label => 'IP'
-    column :detail, :width => 500
+      width: 150,
+      label: "Datetime",
+      type: "Datetime",
+      datetime_format: :with_seconds,
+      source: :created_at,
+      id: :created_at_local,
+      field: :created_at_local,
+      sort_column: :created_at_local,
+      sql_expression: "audit_logs.created_at",
+      sql_type: :datetime
+    column :user_email, width: 150, label: "User"
+    column :action, width: 80
+    column :class_name, width: 150, label: "Class"
+    column :record_id, width: 70, label: "Id"
+    column :request_ip, width: 150, label: "IP"
+    column :detail, width: 500
 
     if defined? WulinMaster::GridActions::ORIGINAL_ACTIONS
       action :excel

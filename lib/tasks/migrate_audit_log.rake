@@ -1,11 +1,11 @@
 namespace :wulin_audit do
-  desc 'Migrate audit_log from MongoDB to PostgreSQL'
+  desc "Migrate audit_log from MongoDB to PostgreSQL"
   task migrate_audit_log: :environment do
-    require 'mongo'
+    require "mongo"
 
-    host = ENV['host'] || '127.0.0.1'
+    host = ENV["host"] || "127.0.0.1"
     url = "#{host}:27017"
-    mongodb = ENV['mongodb'] || 'bss_development'
+    mongodb = ENV["mongodb"] || "bss_development"
 
     Mongo::Logger.logger.level = ::Logger::FATAL
 
@@ -22,11 +22,11 @@ namespace :wulin_audit do
           detail: mongo_log[:detail],
           created_at: mongo_log[:created_at]
         )
-        print '.'
+        print "."
       end
       client.close
-      puts ''
-      puts "#{client[:wulin_audit_audit_logs].count()} audit logs converted"
+      puts ""
+      puts "#{client[:wulin_audit_audit_logs].count} audit logs converted"
     rescue Mongo::Error => e
       puts e
     end
