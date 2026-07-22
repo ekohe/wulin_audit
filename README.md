@@ -65,6 +65,49 @@ class Department < ActiveRecord::Base
 end
 ```
 
+## Action Log
+
+A lightweight APM that records every HTTP request with performance breakdown. Subscribes to `ActiveSupport::Notifications` — no middleware or monkey-patching.
+
+Each request writes one `WulinAudit::ActionLog` row:
+
+| Column | Description |
+|---|---|
+| `request_id` | Rails `X-Request-Id` header / auto-generated UUID |
+| `user_id` | `User.current_user.try(:id)` |
+| `user_email` | `User.current_user.try(:email)` |
+| `request_ip` | `request.remote_ip` |
+| `http_method` | GET / POST / PUT / DELETE / PATCH |
+| `path` | Request path |
+| `controller` | Controller class name |
+| `action` | Action name |
+| `params` | Filtered request parameters (JSONB) |
+| `status` | HTTP response code |
+| `duration` | Total request duration in ms |
+| `allocations` | Object allocations (Rails 5.2+) |
+| `exception` | Exception class + message, if any |
+| `spans` | Performance breakdown by type (JSONB) |
+
+The `spans` column stores an aggregate hash:
+
+```json
+{"db": {"count": 5, "duration": 4.33}, "view": {"count": 2, "duration": 6.78}}
+```
+
+Writes happen asynchronously on a background thread pool. INSERTs are silenced from the Rails log.
+
+### Excluding Controllers
+
+By default all controllers are logged. To opt out, use `reject_action_log`:
+
+```ruby
+class HealthChecksController < ApplicationController
+  reject_action_log
+end
+```
+
+WulinAudit's own controllers are excluded by default.
+
 ## WulinMaster Integration
 
 If [WulinMaster](https://github.com/ekohe/wulin_master) is loaded, WulinAudit automatically:
@@ -72,6 +115,7 @@ If [WulinMaster](https://github.com/ekohe/wulin_master) is loaded, WulinAudit au
 - Adds an **Audit** toolbar action to grids (requires `record_audit#read` permission)
 - Provides `AuditLogScreen` at `/wulin_audit/audit_logs` for browsing all audit logs
 - Provides `RecordAuditScreen` at `/wulin_audit/record_audits` for per-record audit history
+- Provides `ActionLogScreen` at `/wulin_audit/action_logs` for browsing all action logs
 
 ## InfluxDB Integration (Optional)
 
@@ -93,7 +137,7 @@ rails wulin_audit:load_audit_in_influxdb
 
 ## Contributing
 
-Jimmy, Xuhao, and Maxime Guilbot from [Ekohe](https://ekohe.com).
+Jimmy, Xuhao, Maxime Guilbot, Sarah Wang, and Mel Cao from [Ekohe](https://ekohe.com).
 
 ## License
 

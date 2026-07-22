@@ -15,5 +15,23 @@ module WulinAudit
         end
       end
     end
+
+    initializer "wulin_audit.reject_action_log" do
+      ActiveSupport.on_load(:action_controller) do
+        def self.reject_action_log
+          cattr_accessor :_action_log_rejected
+          self._action_log_rejected = true
+        end
+      end
+    end
+
+    initializer "wulin_audit.action_log_subscriber" do |app|
+      app.config.after_initialize do
+        if WulinAudit.action_log_enabled
+          require "wulin_audit/action_log_subscriber"
+          WulinAudit::ActionLogSubscriber.install
+        end
+      end
+    end
   end
 end

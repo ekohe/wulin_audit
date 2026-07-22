@@ -1,8 +1,4 @@
-stages:
-  - lint
-
-lint:
-  stage: lint
+default:
   image: ruby:3.3
   cache:
     key: gems
@@ -11,5 +7,17 @@ lint:
   before_script:
     - bundle config set --local path vendor/bundle
     - bundle install --jobs=$(nproc)
+
+stages:
+  - lint
+  - test
+
+lint:
+  stage: lint
   script:
     - bundle exec standardrb
+
+test:
+  stage: test
+  script:
+    - bundle exec rake test

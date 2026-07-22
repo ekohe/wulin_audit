@@ -17,4 +17,9 @@ Gem::Specification.new do |s|
   s.required_ruby_version = ">= 2.7"
 
   s.add_development_dependency "standard"
+  s.add_development_dependency "minitest"
+  s.add_development_dependency "rails"
+  s.add_development_dependency "sqlite3"
+  s.add_development_dependency "concurrent-ruby"
+  s.add_development_dependency "haml-rails"
 end
