@@ -3,6 +3,8 @@ if defined? WulinMaster
     class RecordAuditsController < WulinMaster::ScreenController
       controller_for_screen RecordAuditScreen
 
+      reject_action_log
+
       add_callback :query_ready, :set_record_id_condition
 
       def set_record_id_condition

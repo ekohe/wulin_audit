@@ -5,6 +5,7 @@ if defined? WulinMaster
   module WulinAudit
     class AuditLogsController < WulinMaster::ScreenController
       controller_for_screen AuditLogScreen
+      reject_action_log
     end
   end
 end
