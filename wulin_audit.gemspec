@@ -9,6 +9,7 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/ekohe/wulin_audit"
   s.summary = "Audit extension for WulinMaster"
   s.description = "Audit extension for WulinMaster"
+  s.license = "MIT"
 
   s.files = `git ls-files`.split("\n")
   s.executables = `git ls-files -- bin/*`.split("\n").map { |f| File.basename(f) }
