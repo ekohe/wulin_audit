@@ -17,18 +17,17 @@ if defined? WulinMaster
     column :controller, width: 150
     column :action, width: 100
     column :status, width: 60
-    column :duration, width: 80, label: "Duration (ms)"
+    column :duration, width: 80, label: "Total (ms)"
+    column :db_duration, width: 80, label: "DB (ms)", sortable: false, filterable: false
+    column :view_duration, width: 80, label: "View (ms)", sortable: false, filterable: false
+    column :action_duration, width: 80, label: "Action (ms)", sortable: false, filterable: false
     column :allocations, width: 100
     column :request_ip, width: 120, label: "IP"
     column :exception, width: 200
     column :params, width: 300
     column :spans, width: 400
 
-    if defined? WulinMaster::GridActions::ORIGINAL_ACTIONS
-      action :excel
-      action :filter
-    else
-      action :export
-    end
+    action :show_audit_logs, title: "Audit Logs", icon: :visibility
+    action :export if defined?(WulinExcel)
   end
 end

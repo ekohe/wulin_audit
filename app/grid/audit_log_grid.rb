@@ -72,6 +72,7 @@ if defined? WulinMaster
       sort_column: :created_at_local,
       sql_expression: "audit_logs.created_at",
       sql_type: :datetime
+    column :request_id, width: 200
     column :user_email, width: 150, label: "User"
     column :action, width: 80
     column :class_name, width: 150, label: "Class"

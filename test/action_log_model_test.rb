@@ -20,7 +20,7 @@ class ActionLogModelTest < Minitest::Test
       duration: 12.5,
       allocations: 100,
       exception: nil,
-      spans: {"db" => {"count" => 1, "duration" => 1.0}}
+      spans: {"db" => {"count" => 1, "duration" => 3.0}, "view" => {"count" => 1, "duration" => 5.0}}
     )
 
     log.reload
@@ -51,5 +51,38 @@ class ActionLogModelTest < Minitest::Test
     log.reload
     assert_equal({"foo" => "bar"}, log.params)
     assert_equal({"view" => {"count" => 1, "duration" => 2.0}}, log.read_attribute("spans"))
+  end
+
+  def test_db_and_view_duration_derived_from_spans
+    log = WulinAudit::ActionLog.create!(
+      spans: {"db" => {"count" => 3, "duration" => 8.5}, "view" => {"count" => 2, "duration" => 4.2}}
+    )
+    log.reload
+    assert_in_delta 8.5, log.db_duration
+    assert_in_delta 4.2, log.view_duration
+  end
+
+  def test_db_and_view_duration_nil_without_spans
+    log = WulinAudit::ActionLog.new
+    assert_nil log.db_duration
+    assert_nil log.view_duration
+  end
+
+  def test_action_duration_computes_remainder
+    log = WulinAudit::ActionLog.new(
+      duration: 100.0,
+      spans: {"db" => {"count" => 1, "duration" => 30.0}, "view" => {"count" => 1, "duration" => 20.0}}
+    )
+    assert_in_delta 50.0, log.action_duration
+  end
+
+  def test_action_duration_handles_no_spans
+    log = WulinAudit::ActionLog.new(duration: 100.0)
+    assert_in_delta 100.0, log.action_duration
+  end
+
+  def test_action_duration_nil_without_duration
+    log = WulinAudit::ActionLog.new
+    assert_nil log.action_duration
   end
 end

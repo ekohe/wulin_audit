@@ -5,7 +5,7 @@ if defined? WulinMaster
 
       reject_action_log
 
-      add_callback :query_ready, :set_record_id_condition
+      add_callback :query_initialized, :set_record_id_condition
 
       def set_record_id_condition
         if params[:record_ids].present? && params[:class_name].present?

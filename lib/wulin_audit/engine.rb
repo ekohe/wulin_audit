@@ -5,7 +5,7 @@ module WulinAudit
     engine_name :wulin_audit
 
     initializer "add assets to precompile" do |app|
-      app.config.assets.precompile += %w[audit.css audit.js audit.png]
+      app.config.assets.precompile += %w[audit.png]
     end
 
     initializer :append_migrations do |app|
@@ -13,6 +13,12 @@ module WulinAudit
         config.paths["db/migrate"].expanded.each do |expanded_path|
           app.config.paths["db/migrate"] << expanded_path
         end
+      end
+    end
+
+    initializer "wulin_audit.capture_request_id" do
+      ActiveSupport.on_load(:action_controller) do
+        before_action { Thread.current[:wulin_audit_request_id] = request.request_id }
       end
     end
 

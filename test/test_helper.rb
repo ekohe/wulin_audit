@@ -68,6 +68,10 @@ class User
   end
 end
 
+# Stub Rails.application so filter_params works without a full app boot.
+app_config = Struct.new(:filter_parameters).new([])
+Rails.instance_variable_set(:@application, Struct.new(:config).new(app_config))
+
 require "wulin_audit"
 
 # We don't boot a full Rails app here, so neither the engine's app/models

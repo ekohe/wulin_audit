@@ -28,6 +28,7 @@ WulinAudit includes itself into `ActiveRecord::Base` via `after_create`, `after_
 | `user_id`    | `User.current_user.try(:id)`             |
 | `user_email` | `User.current_user.try(:email)`          |
 | `request_ip` | `User.current_user.try(:ip)`             |
+| `request_id` | Rails `X-Request-Id` of the request that triggered the change |
 | `record_id`  | ID of the audited record                 |
 | `action`     | `create`, `update`, or `delete`          |
 | `class_name` | Class name of the audited record         |
@@ -65,9 +66,27 @@ class Department < ActiveRecord::Base
 end
 ```
 
+## Customizing the Audited Class Name
+
+`RecordAuditScreen` looks up audit logs by `class_name`. If a model's audits should be queried under a different name (e.g. an STI base class), define `audit_class_name`:
+
+```ruby
+class Post < ActiveRecord::Base
+  def self.audit_class_name
+    "Article"
+  end
+end
+```
+
+This only affects the `RecordAuditScreen` query — the `class_name` written to each `AuditLog` row is always the record's actual class.
+
 ## Action Log
 
-A lightweight APM that records every HTTP request with performance breakdown. Subscribes to `ActiveSupport::Notifications` — no middleware or monkey-patching.
+A lightweight APM that records every HTTP request with performance breakdown. Subscribes to `ActiveSupport::Notifications` — no middleware or monkey-patching. Enabled by default; disable entirely with:
+
+```ruby
+WulinAudit.action_log_enabled = false
+```
 
 Each request writes one `WulinAudit::ActionLog` row:
 
@@ -94,7 +113,13 @@ The `spans` column stores an aggregate hash:
 {"db": {"count": 5, "duration": 4.33}, "view": {"count": 2, "duration": 6.78}}
 ```
 
+`WulinAudit::ActionLog` derives `db_duration` and `view_duration` from `spans`, and `action_duration` as the remainder of `duration` — no extra columns needed.
+
 Writes happen asynchronously on a background thread pool. INSERTs are silenced from the Rails log.
+
+### Param Filtering
+
+`params` are passed through `ActiveSupport::ParameterFilter` using your app's `config.filter_parameters` — the same rules Rails applies to its own logs, so passwords and other sensitive keys are redacted. If the filtered payload's JSON serialization exceeds 512 bytes, it's truncated to a plain string.
 
 ### Excluding Controllers
 
@@ -112,10 +137,28 @@ WulinAudit's own controllers are excluded by default.
 
 If [WulinMaster](https://github.com/ekohe/wulin_master) is loaded, WulinAudit automatically:
 
-- Adds an **Audit** toolbar action to grids (requires `record_audit#read` permission)
+- Adds an **Audit** toolbar action to grids, gated on a `record_audit#read` permission — create that permission yourself, it isn't seeded by this gem
 - Provides `AuditLogScreen` at `/wulin_audit/audit_logs` for browsing all audit logs
 - Provides `RecordAuditScreen` at `/wulin_audit/record_audits` for per-record audit history
-- Provides `ActionLogScreen` at `/wulin_audit/action_logs` for browsing all action logs
+- Provides `ActionLogScreen` at `/wulin_audit/action_logs` for browsing all action logs, gated on `action_log#read`/`action_log#cud` permissions seeded automatically by migration (if your app defines a `Permission` model)
+- Adds an **Audit Logs** toolbar action to `ActionLogGrid`: select one or more rows and it opens a modal with the `AuditLogScreen` grid filtered to those requests' `request_id`s
+- Adds an **Export** action to `ActionLogGrid` when the `WulinExcel` gem is installed; `AuditLogGrid` always exposes **Export**
+
+None of this JS is auto-loaded — add both to your host app's asset manifest:
+
+```
+//= require audit
+//= require actions/show_audit_logs
+```
+
+None of these screens appear in your app's navigation automatically either — add them to your menu-defining controller:
+
+```ruby
+submenu :settings do
+  item AuditLogScreen, icon: :history
+  item ActionLogScreen, icon: :assignment
+end
+```
 
 ## InfluxDB Integration (Optional)
 
