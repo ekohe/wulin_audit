@@ -33,6 +33,8 @@ module WulinAudit
         controller_class = payload[:controller]&.safe_constantize
         next if controller_class&.respond_to?(:_action_log_rejected) && controller_class._action_log_rejected
 
+        raw_params = payload[:params]&.except(:controller, :action)
+
         attrs = {
           request_id: payload[:request]&.request_id,
           user_id: begin
@@ -50,7 +52,7 @@ module WulinAudit
           path: payload[:path],
           controller: payload[:controller],
           action: payload[:action],
-          params: payload[:params]&.except(:controller, :action),
+          params: truncate_params(filter_params(raw_params)),
           status: payload[:status],
           duration: event.duration.round(2),
           allocations: event.allocations,
@@ -92,6 +94,19 @@ module WulinAudit
       spans = Thread.current[SPAN_KEY] || {}
       Thread.current[SPAN_KEY] = {}
       spans
+    end
+
+    MAX_PARAMS_SIZE = 512
+
+    def self.truncate_params(params)
+      return params unless params
+      json = params.to_json
+      (json.bytesize > MAX_PARAMS_SIZE) ? "#{json.byteslice(0, MAX_PARAMS_SIZE).scrub}… [TRUNCATED]" : params
+    end
+
+    def self.filter_params(params)
+      return params unless params
+      ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters).filter(params)
     end
   end
 end

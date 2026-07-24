@@ -125,6 +125,7 @@ module WulinAudit
       rescue
         nil
       end,
+                    request_id: Thread.current[:wulin_audit_request_id],
                     request_ip: begin
                       User.current_user.try(:ip)
                     rescue
