@@ -1,13 +1,12 @@
 module WulinAudit
   class ActionLogSubscriber
     SPAN_KEY = :wulin_audit_spans
-    POOL_SIZE = 2
 
     def self.install
-      @pool = Concurrent::FixedThreadPool.new(POOL_SIZE)
+      return if @installed
+      @installed = true
       subscribe_spans
       subscribe_transaction
-      at_exit { shutdown }
     end
 
     def self.subscribe_spans
@@ -60,27 +59,36 @@ module WulinAudit
           spans: spans
         }
 
-        write_async(attrs)
+        write(attrs)
+        # The INSERT's own sql notification lands in the span buffer; drop it so
+        # it isn't billed to the next request.
+        flush_spans
       end
     end
 
-    def self.write_async(attrs)
-      @pool.post do
-        ActiveRecord::Base.connection_pool.with_connection do
-          if ActiveRecord::Base.logger
-            ActiveRecord::Base.logger.silence { WulinAudit::ActionLog.create(attrs) }
-          else
-            WulinAudit::ActionLog.create(attrs)
-          end
+    # Written on the request thread, on the connection it already holds. A
+    # background thread would have to borrow a connection from the pool, and
+    # under transactional fixtures the pool hands out the test thread's own —
+    # two threads on one libpq socket segfaults Ruby. Measured cost of writing
+    # here instead: 0.4ms.
+    # https://gitlab.ekohe.com/ekohe/wulin/wulin_audit/-/merge_requests/12
+    #
+    # The savepoint is what makes the rescue below safe. A rejected INSERT
+    # leaves PostgreSQL's transaction aborted, and swallowing the error there
+    # would kill every later statement on the connection with
+    # PG::InFailedSqlTransaction — under transactional fixtures, the rest of
+    # the host app's example. The rescue has to stay *outside* the block: only
+    # an exception escaping it makes Rails issue ROLLBACK TO SAVEPOINT.
+    def self.write(attrs)
+      WulinAudit::ActionLog.transaction(requires_new: true) do
+        if ActiveRecord::Base.logger
+          ActiveRecord::Base.logger.silence { WulinAudit::ActionLog.create(attrs) }
+        else
+          WulinAudit::ActionLog.create(attrs)
         end
-      rescue => e
-        Rails.logger.warn "WulinAudit::ActionLog failed: #{e.message}"
       end
-    end
-
-    def self.shutdown
-      @pool.shutdown
-      @pool.wait_for_termination(5)
+    rescue => e
+      Rails.logger&.warn "WulinAudit::ActionLog failed: #{e.message}"
     end
 
     def self.push_span(type, duration)

@@ -115,7 +115,15 @@ The `spans` column stores an aggregate hash:
 
 `WulinAudit::ActionLog` derives `db_duration` and `view_duration` from `spans`, and `action_duration` as the remainder of `duration` — no extra columns needed.
 
-Writes happen asynchronously on a background thread pool. INSERTs are silenced from the Rails log.
+### Write Path
+
+The row is written synchronously, at the end of the request, on the request thread's own connection. Measured cost: **0.4 ms**. INSERTs are silenced from the Rails log, and a failure is logged and swallowed — it can never break a request.
+
+The INSERT runs inside a savepoint, which is what makes swallowing safe. Sharing the caller's connection means sharing its transaction, and a rejected INSERT leaves PostgreSQL's transaction aborted: swallow the error without a savepoint and every later statement on that connection dies with `PG::InFailedSqlTransaction` — under transactional fixtures, the remainder of the host app's example.
+
+This used to run on a background thread pool. It doesn't any more, deliberately: a pool thread has no connection of its own, so it has to borrow one, and under `use_transactional_fixtures` the pool hands it the connection belonging to the test thread. Two threads issuing queries on one libpq socket segfaults Ruby — it took out cruise's suite repeatedly. Guarding against that costs more complexity than the 0.4 ms it saves, so don't reintroduce the thread.
+
+Writing on the request thread also means rows appear normally in a host app's specs, inside the fixture transaction, and roll back with it. Nothing needs disabling in `config/environments/test.rb`.
 
 ### Param Filtering
 
@@ -144,12 +152,13 @@ If [WulinMaster](https://github.com/ekohe/wulin_master) is loaded, WulinAudit au
 - Adds an **Audit Logs** toolbar action to `ActionLogGrid`: select one or more rows and it opens a modal with the `AuditLogScreen` grid filtered to those requests' `request_id`s
 - Adds an **Export** action to `ActionLogGrid` when the `WulinExcel` gem is installed; `AuditLogGrid` always exposes **Export**
 
-None of this JS is auto-loaded — add both to your host app's asset manifest:
+None of this JS is auto-loaded — add one line to your host app's asset manifest:
 
 ```
 //= require audit
-//= require actions/show_audit_logs
 ```
+
+`audit.js` pulls in `actions/show_audit_logs` itself, so that's the only line you need.
 
 None of these screens appear in your app's navigation automatically either — add them to your menu-defining controller:
 

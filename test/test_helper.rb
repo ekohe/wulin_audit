@@ -4,13 +4,9 @@ require "rails"
 require "active_record"
 require "action_controller"
 require "active_support/notifications"
-require "concurrent"
 require "securerandom"
 
-# The subscriber writes from a background thread pool, and a bare ":memory:"
-# database is private to the connection that opened it — other threads would
-# see an empty DB. A shared-cache URI keeps every connection on the same DB.
-ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: "file::memory:?cache=shared")
+ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
 
 ActiveRecord::Schema.define do
   create_table :audit_logs, force: true do |t|
