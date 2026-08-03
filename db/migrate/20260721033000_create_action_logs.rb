@@ -1,6 +1,6 @@
 # Shipped once as 20260721000000, renamed in 8af3d41. Apps that migrated the
 # old version already have the table, so this must survive a second run.
-class CreateActionLogs < ActiveRecord::Migration[7.1]
+class CreateActionLogs < ActiveRecord::Migration[6.1]
   def change
     create_table :action_logs, if_not_exists: true do |t|
       t.string :request_id
