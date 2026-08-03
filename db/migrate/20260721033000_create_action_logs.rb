@@ -1,6 +1,8 @@
-class CreateActionLogs < ActiveRecord::Migration[5.0]
+# Shipped once as 20260721000000, renamed in 8af3d41. Apps that migrated the
+# old version already have the table, so this must survive a second run.
+class CreateActionLogs < ActiveRecord::Migration[7.1]
   def change
-    create_table :action_logs do |t|
+    create_table :action_logs, if_not_exists: true do |t|
       t.string :request_id
       t.integer :user_id
       t.string :user_email
@@ -16,11 +18,11 @@ class CreateActionLogs < ActiveRecord::Migration[5.0]
       t.string :exception
       t.jsonb :spans
       t.datetime :created_at
-    end
 
-    add_index :action_logs, :request_id
-    add_index :action_logs, :user_id
-    add_index :action_logs, [:controller, :action]
-    add_index :action_logs, :created_at
+      t.index :request_id
+      t.index :user_id
+      t.index [:controller, :action]
+      t.index :created_at
+    end
   end
 end
