@@ -6,7 +6,7 @@ class ActionLogSubscriberTest < Minitest::Test
     # delete_all above fires its own sql.active_record notification; flush it
     # so each test starts with a clean span buffer.
     WulinAudit::ActionLogSubscriber.flush_spans
-    WulinAudit::ActionLogSubscriber.install unless WulinAudit::ActionLogSubscriber.instance_variable_get(:@pool)
+    WulinAudit::ActionLogSubscriber.install
   end
 
   def test_push_span_and_flush_spans
@@ -69,8 +69,6 @@ class ActionLogSubscriberTest < Minitest::Test
       status: 200
     ) {}
 
-    wait_for_writes
-
     log = WulinAudit::ActionLog.last
     refute_nil log
     assert_equal "req-123", log.request_id
@@ -88,18 +86,85 @@ class ActionLogSubscriberTest < Minitest::Test
     assert_equal({"count" => 1, "duration" => 2.5}, spans["view"])
   end
 
-  def test_write_async_writes_via_thread_pool
-    WulinAudit::ActionLogSubscriber.write_async(
-      request_id: "async-1",
-      controller: "posts",
-      action: "show",
-      spans: []
-    )
+  def test_write_swallows_errors_so_requests_are_never_broken
+    WulinAudit::ActionLogSubscriber.write(no_such_column: "boom")
 
-    wait_for_writes
+    assert_equal 0, WulinAudit::ActionLog.count
+  end
 
-    log = WulinAudit::ActionLog.find_by(request_id: "async-1")
-    refute_nil log
+  # The test above raises in Ruby, before any SQL is sent. This one is rejected
+  # by the database itself — the only path that can abort a transaction.
+  def test_write_swallows_database_errors_and_leaves_the_transaction_usable
+    WulinAudit::ActionLog.create!(id: 1, request_id: "taken")
+
+    WulinAudit::ActionLog.transaction do
+      WulinAudit::ActionLogSubscriber.write(id: 1, request_id: "duplicate")
+
+      assert_equal 1, WulinAudit::ActionLog.count
+      WulinAudit::ActionLog.create!(request_id: "after-failure")
+    end
+
+    assert_equal 2, WulinAudit::ActionLog.count
+  end
+
+  # The INSERT has to run one transaction level below its caller's. On
+  # PostgreSQL that savepoint is the only thing keeping a rejected INSERT from
+  # aborting the caller's transaction and killing every statement after it with
+  # PG::InFailedSqlTransaction. SQLite has no aborted-transaction state, so
+  # assert on the nesting rather than the symptom.
+  def test_write_isolates_its_insert_one_transaction_level_down
+    depth_at_insert = nil
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*args|
+      payload = ActiveSupport::Notifications::Event.new(*args).payload
+      next unless payload[:name] == "WulinAudit::ActionLog Create"
+      depth_at_insert ||= ActiveRecord::Base.connection_pool.lease_connection.open_transactions
+    end
+
+    WulinAudit::ActionLog.transaction do
+      assert_equal 1, ActiveRecord::Base.connection_pool.lease_connection.open_transactions
+      WulinAudit::ActionLogSubscriber.write(request_id: "nested-1")
+    end
+
+    assert_equal 2, depth_at_insert
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
+
+  def test_notification_writes_the_row
+    ActiveSupport::Notifications.instrument(
+      "process_action.action_controller",
+      request: Struct.new(:request_id, :remote_ip).new("e2e-1", "10.0.0.4"),
+      method: "GET", path: "/posts", controller: "posts", action: "index",
+      params: {}, status: 200
+    ) {}
+
+    refute_nil WulinAudit::ActionLog.find_by(request_id: "e2e-1")
+  end
+
+  def test_write_does_not_bill_its_own_insert_to_the_next_request
+    ActiveSupport::Notifications.instrument(
+      "process_action.action_controller",
+      request: Struct.new(:request_id, :remote_ip).new("span-leak-1", "10.0.0.5"),
+      method: "GET", path: "/posts", controller: "posts", action: "index",
+      params: {}, status: 200
+    ) {}
+
+    assert_equal({}, WulinAudit::ActionLogSubscriber.flush_spans)
+  end
+
+  def test_install_is_idempotent_so_notifications_are_not_double_subscribed
+    WulinAudit::ActionLog.delete_all
+    WulinAudit::ActionLogSubscriber.install
+    WulinAudit::ActionLogSubscriber.install
+
+    ActiveSupport::Notifications.instrument(
+      "process_action.action_controller",
+      request: Struct.new(:request_id, :remote_ip).new("once-1", "10.0.0.3"),
+      method: "GET", path: "/posts", controller: "posts", action: "index",
+      params: {}, status: 200
+    ) {}
+
+    assert_equal 1, WulinAudit::ActionLog.where(request_id: "once-1").count
   end
 
   def test_filter_params_applies_rails_filter_parameters
@@ -151,8 +216,6 @@ class ActionLogSubscriberTest < Minitest::Test
       status: 200
     ) {}
 
-    wait_for_writes
-
     assert_equal 1, WulinAudit::ActionLog.count
     log = WulinAudit::ActionLog.find_by(request_id: "req-e2e")
     refute_nil log
@@ -163,19 +226,6 @@ class ActionLogSubscriberTest < Minitest::Test
   end
 
   private
-
-  # The subscriber writes on a background thread pool with more than one
-  # worker, so a single sentinel job isn't a reliable barrier: it can be
-  # picked up by an idle thread and finish before a write queued just ahead
-  # of it on another thread. Shutting the pool down and waiting for
-  # termination is the only way to be sure every queued write has landed.
-  # Notifications still hold a reference to the class, not the old pool
-  # instance, so swapping in a fresh one is enough to keep write_async
-  # working for later tests.
-  def wait_for_writes
-    WulinAudit::ActionLogSubscriber.shutdown
-    WulinAudit::ActionLogSubscriber.instance_variable_set(:@pool, Concurrent::FixedThreadPool.new(2))
-  end
 
   def stub_filter_parameters(filters)
     app = Struct.new(:config).new(Struct.new(:filter_parameters).new(filters))

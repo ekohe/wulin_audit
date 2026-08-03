@@ -17,7 +17,7 @@ CI (`.gitlab-ci.yml`) runs `standardrb` then `rake test` on every push.
 
 - `lib/wulin_audit.rb` — gem entry point; defines `WulinAudit.action_log_enabled` (default `true`) and conditionally requires the ORM/WulinMaster integrations below
 - `lib/wulin_audit/engine.rb` — Rails::Engine, initializers (audit callbacks, action-log subscriber, request-id capture)
-- `lib/wulin_audit/action_log_subscriber.rb` — `ActiveSupport::Notifications` subscriber that writes `ActionLog` rows on a background thread pool
+- `lib/wulin_audit/action_log_subscriber.rb` — `ActiveSupport::Notifications` subscriber that writes `ActionLog` rows synchronously on the request thread. **Read the comment on `.write` before moving this off the request thread** — a second thread must borrow a pool connection, and under transactional fixtures that is the test thread's own, which segfaults the host app's suite
 - `lib/wulin_audit/extension.rb` — `WulinAudit::Extension`, the `after_create`/`after_update`/`after_destroy` audit hooks; `orm/active_record.rb` mixes it into `ActiveRecord::Base`
 - `lib/wulin_audit/wulin_master.rb` — patches `WulinMaster::Grid` to add the default `:audit` toolbar action, gated on `record_audit#read`
 - `lib/tasks/*.rake` — `wulin_audit:load_audit_in_influxdb` (backfill) and `wulin_audit:migrate_audit_log` (legacy MongoDB→PostgreSQL one-off)

@@ -6,10 +6,11 @@
 
 - Gemfile + `rails db:migrate` — full steps in the README's Installation section.
 - The host app must implement `User.current_user` returning an object that responds to `id`, `email`, `ip`.
-- None of the WulinMaster JS or screens auto-load. The host app must add explicit `//= require audit` / `//= require actions/show_audit_logs` lines to its asset manifest, and `item AuditLogScreen`/`item ActionLogScreen` lines to its menu-defining controller — see the README's "WulinMaster Integration" section for both snippets.
+- None of the WulinMaster JS or screens auto-load. The host app must add a `//= require audit` line to its asset manifest (that one line pulls in `actions/show_audit_logs` too), and `item AuditLogScreen`/`item ActionLogScreen` lines to its menu-defining controller — see the README's "WulinMaster Integration" section for both snippets.
 - The **Audit** grid toolbar action is gated on a `record_audit#read` permission that the host app must create itself — this gem does not seed it.
 - `ActionLogScreen` is gated on `action_log#read`/`action_log#cud` permissions, which ARE seeded automatically by this gem's migration, but only if the host app already defines a `Permission` model.
 - The Action Log APM (per-request performance rows) is on by default; disable it host-app-wide with `WulinAudit.action_log_enabled = false`.
+- Action log rows are written synchronously on the request thread (0.4 ms), and require no host-app configuration. Do not move this onto a background thread: a second thread has to borrow a connection from the pool, `use_transactional_fixtures` hands it the test thread's own, and two threads on one connection segfaults the whole rspec process. See the README's "Write Path" section.
 
 ## Gotchas
 

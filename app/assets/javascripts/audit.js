@@ -1,3 +1,5 @@
+//= require actions/show_audit_logs
+
 // Audit action
 WulinMaster.actions.Audit = $.extend({}, WulinMaster.actions.BaseAction, {
   name: 'audit',
