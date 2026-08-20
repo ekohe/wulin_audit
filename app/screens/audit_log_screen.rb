@@ -1,6 +1,6 @@
 if defined? WulinMaster
   class AuditLogScreen < WulinMaster::Screen
-    title "Audit Logs"
+    title "Audit Log"
 
     path "/wulin_audit/audit_logs"
 
