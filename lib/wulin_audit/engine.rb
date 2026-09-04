@@ -5,7 +5,11 @@ module WulinAudit
     engine_name :wulin_audit
 
     initializer "add assets to precompile" do |app|
-      app.config.assets.precompile += %w[audit.png]
+      if defined?(Propshaft)
+        app.config.assets.paths << root.join("app", "assets", "images")
+      else
+        app.config.assets.precompile += %w[audit.png]
+      end
     end
 
     initializer :append_migrations do |app|
