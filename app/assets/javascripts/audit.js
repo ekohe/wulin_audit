@@ -1,4 +1,5 @@
 //= require actions/show_audit_logs
+//= stub audit.esm
 
 // Audit action
 WulinMaster.actions.Audit = $.extend({}, WulinMaster.actions.BaseAction, {
