@@ -3,5 +3,6 @@ Rails.application.routes.draw do
     resources :audit_logs
     resources :record_audits
     resources :action_logs
+    resources :action_log_analysis, only: :index
   end
 end

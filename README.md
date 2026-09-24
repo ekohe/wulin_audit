@@ -149,16 +149,28 @@ If [WulinMaster](https://github.com/ekohe/wulin_master) is loaded, WulinAudit au
 - Provides `AuditLogScreen` at `/wulin_audit/audit_logs` for browsing all audit logs
 - Provides `RecordAuditScreen` at `/wulin_audit/record_audits` for per-record audit history
 - Provides `ActionLogScreen` at `/wulin_audit/action_logs` for browsing all action logs, gated on `action_log#read`/`action_log#cud` permissions seeded automatically by migration (if your app defines a `Permission` model)
+- Provides `ActionLogAnalysisScreen` at `/wulin_audit/action_log_analysis` for usage and performance analysis, gated on the seeded `action_log_analysis#read` permission
 - Adds an **Audit Logs** toolbar action to `ActionLogGrid`: select one or more rows and it opens a modal with the `AuditLogScreen` grid filtered to those requests' `request_id`s
 - Adds an **Export** action to `ActionLogGrid` when the `WulinExcel` gem is installed; `AuditLogGrid` always exposes **Export**
 
 None of this JS is auto-loaded — add one line to your host app's asset manifest:
 
 ```
-//= require audit
+//= require audit.js
 ```
 
-`audit.js` pulls in `actions/show_audit_logs` itself, so that's the only line you need.
+`audit.js` pulls in Chart.js, the analysis dashboard and both toolbar actions
+itself, so that's the only line you need. Hosts bundling with esbuild import
+`app/javascript/wulin_audit.esm.js` instead, which imports the same files
+directly because bundlers ignore the Sprockets directives in `audit.js`.
+
+Add the Wulin Audit stylesheet to the host stylesheet manifest:
+
+```
+*= require audit
+```
+
+The `audit` stylesheet includes the analysis dashboard styles.
 
 None of these screens appear in your app's navigation automatically either — add them to your menu-defining controller:
 
@@ -166,8 +178,16 @@ None of these screens appear in your app's navigation automatically either — a
 submenu :settings do
   item AuditLogScreen, icon: :history
   item ActionLogScreen, icon: :assignment
+  item ActionLogAnalysisScreen, icon: :show_chart
 end
 ```
+
+The analysis screen defaults to the last 24 hours. It supports quick and custom
+time ranges, user and controller/action filters, request activity charts, top
+users and actions, average and 95th-percentile
+duration, slow action groups, and the 100 slowest requests. Ranges are limited to
+six months, and time buckets are selected automatically to keep charts at 200
+data points or fewer.
 
 ## InfluxDB Integration (Optional)
 

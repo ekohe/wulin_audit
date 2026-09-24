@@ -1,0 +1,48 @@
+%h3 Slow controller#action
+.analysis-table-wrapper
+  %table.analysis-table.performance-summary
+    %thead
+      %tr
+        %th Controller#action
+        %th Requests
+        %th Average
+        %th P95
+        %th Maximum
+    %tbody
+      - @analysis.slow_by_action.each do |row|
+        %tr
+          %td= row[:target]
+          %td.numeric= number_with_delimiter(row[:count])
+          %td.numeric= "#{number_with_delimiter(row[:average_duration])} ms"
+          %td.numeric= "#{number_with_delimiter(row[:p95_duration])} ms"
+          %td.numeric= "#{number_with_delimiter(row[:maximum_duration])} ms"
+
+%h3 100 slowest requests
+.analysis-table-wrapper.slow-requests
+  %table.analysis-table.requests
+    %thead
+      %tr
+        %th Datetime (UTC)
+        %th User
+        %th Controller#action
+        %th Request
+        %th Status
+        %th Total
+        %th DB
+        %th View
+        %th Action
+    %tbody
+      - @analysis.slowest_requests.each do |row|
+        %tr
+          %td= row[:created_at]
+          %td= row[:user]
+          %td= row[:target]
+          %td= row[:request]
+          %td.numeric= row[:status]
+          %td.numeric= "#{number_with_delimiter(row[:duration])} ms"
+          %td.numeric= row[:db_duration] ? "#{number_with_delimiter(row[:db_duration])} ms" : "—"
+          %td.numeric= row[:view_duration] ? "#{number_with_delimiter(row[:view_duration])} ms" : "—"
+          %td.numeric= row[:action_duration] ? "#{number_with_delimiter(row[:action_duration])} ms" : "—"
+
+:javascript
+  WulinAuditAnalysis.init();

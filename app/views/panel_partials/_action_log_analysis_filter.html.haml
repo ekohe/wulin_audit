@@ -1,0 +1,22 @@
+%form#action-log-analysis-filters.action-log-analysis-filters{action: "/wulin_audit/action_log_analysis", method: "get", data: {range: @range}}
+  %input{type: "hidden", name: "screen", value: "ActionLogAnalysisScreen"}
+  .quick-ranges
+    - WulinAudit::ActionLogAnalysisController::QUICK_RANGES.each do |label, duration|
+      %button.quick-range{type: "button", class: ("active" if @range == label), data: {range: label, seconds: duration.to_i}}= label
+  %label
+    From
+    %input#from{type: "text", name: "from", data: {datetime: @analysis.from.iso8601}}
+  %label
+    To
+    %input#to{type: "text", name: "to", data: {datetime: @analysis.to.iso8601}}
+  %label.user-filter
+    User
+    %select.browser-default{name: "user"}
+      = options_for_select([["All users", ""]] + @analysis.users.map { |email| [email, email] }, @analysis.user)
+  %label.target-filter
+    Controller#action
+    %select.browser-default{name: "target"}
+      = options_for_select([["All actions", ""]] + @analysis.targets.map { |target| [target, target] }, @analysis.target)
+  .filter-actions
+    %button.apply-filters{type: "submit"} Apply
+    %button.reset-filters{type: "button"} Reset
