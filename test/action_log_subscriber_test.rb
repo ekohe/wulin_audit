@@ -86,6 +86,27 @@ class ActionLogSubscriberTest < Minitest::Test
     assert_equal({"count" => 1, "duration" => 2.5}, spans["view"])
   end
 
+  def test_process_action_takes_durations_from_rails_runtimes
+    WulinAudit::ActionLogSubscriber.flush_spans
+    WulinAudit::ActionLogSubscriber.push_span("db", 4.0)
+    WulinAudit::ActionLogSubscriber.push_span("view", 60.0)
+    WulinAudit::ActionLogSubscriber.push_span("view", 50.0)
+
+    ActiveSupport::Notifications.instrument(
+      "process_action.action_controller",
+      request: Struct.new(:request_id, :remote_ip).new("runtime-1", "10.0.0.6"),
+      method: "GET", path: "/posts", controller: "posts", action: "index",
+      params: {}, status: 200
+    ) do |payload|
+      payload[:db_runtime] = 3.456
+      payload[:view_runtime] = 40.123
+    end
+
+    spans = WulinAudit::ActionLog.find_by(request_id: "runtime-1").read_attribute("spans")
+    assert_equal({"count" => 1, "duration" => 3.46}, spans["db"])
+    assert_equal({"count" => 2, "duration" => 40.12}, spans["view"])
+  end
+
   def test_write_swallows_errors_so_requests_are_never_broken
     WulinAudit::ActionLogSubscriber.write(no_such_column: "boom")
 

@@ -28,6 +28,14 @@ module WulinAudit
         event = ActiveSupport::Notifications::Event.new(*args)
         payload = event.payload
         spans = flush_spans
+        # Summed render events count a nested partial once per enclosing
+        # render, and SQL run while rendering lands in both db and view, so the
+        # sums overlap. Rails' runtimes split the request without overlap; the
+        # subscribers above still supply the counts.
+        {"db" => payload[:db_runtime], "view" => payload[:view_runtime]}.each do |type, runtime|
+          next unless runtime
+          (spans[type] ||= {"count" => 0, "duration" => 0.0})["duration"] = runtime.round(2)
+        end
 
         controller_class = payload[:controller]&.safe_constantize
         next if controller_class&.respond_to?(:_action_log_rejected) && controller_class._action_log_rejected

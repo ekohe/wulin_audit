@@ -113,7 +113,7 @@ The `spans` column stores an aggregate hash:
 {"db": {"count": 5, "duration": 4.33}, "view": {"count": 2, "duration": 6.78}}
 ```
 
-`WulinAudit::ActionLog` derives `db_duration` and `view_duration` from `spans`, and `action_duration` as the remainder of `duration` — no extra columns needed.
+`count` is the number of SQL queries and template/partial renders. `duration` comes from Rails' own `db_runtime` and `view_runtime`, which don't overlap: view time excludes SQL run while rendering, and nested partials are counted once. `WulinAudit::ActionLog` derives `db_duration` and `view_duration` from `spans`, and `action_duration` as the remainder of `duration` — no extra columns needed.
 
 ### Write Path
 
