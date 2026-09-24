@@ -1,0 +1,11 @@
+- summary = @analysis.summary
+.analysis-stats
+  .analysis-stat
+    %span.label Requests
+    %strong= number_with_delimiter(summary[:total])
+  .analysis-stat
+    %span.label Average
+    %strong= summary[:average_duration] ? "#{number_with_delimiter(summary[:average_duration])} ms" : "—"
+  .analysis-stat
+    %span.label 95th percentile
+    %strong= summary[:p95_duration] ? "#{number_with_delimiter(summary[:p95_duration])} ms" : "—"

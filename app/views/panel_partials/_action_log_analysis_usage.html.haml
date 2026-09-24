@@ -1,0 +1,19 @@
+.analysis-chart
+  %canvas#action-log-users-chart
+%script#action-log-users-data{type: "application/json"}
+  = raw json_escape(@analysis.by_user.to_json)
+
+%h3 What is this user doing?
+.analysis-table-wrapper
+  %table.analysis-table.usage-summary
+    %thead
+      %tr
+        %th Controller#action
+        %th Requests
+        %th Average
+    %tbody
+      - @analysis.by_action.each do |row|
+        %tr
+          %td= row[:target]
+          %td.numeric= number_with_delimiter(row[:count])
+          %td.numeric= row[:average_duration] ? "#{number_with_delimiter(row[:average_duration])} ms" : "—"

@@ -1,0 +1,267 @@
+@import "setting/setting";
+@import "base";
+
+.content-panel_action_log_analysis_filter,
+.action_log_analysis {
+  --action-log-analysis-color: #{$main-color};
+}
+
+.content-panel_action_log_analysis_filter {
+  background: #f3f5f7;
+  overflow-y: auto !important;
+}
+
+#screen_content > .action_log_analysis {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+}
+
+#panel_action_log_analysis_filter,
+#panel_action_log_analysis_summary,
+#panel_action_log_analysis_activity,
+#panel_action_log_analysis_usage,
+#panel_action_log_analysis_performance {
+  background: white;
+  border: 1px solid #e1e5e9;
+  border-radius: 4px;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+#panel_action_log_analysis_filter {
+  margin: 8px;
+  width: calc(100% - 16px) !important;
+}
+
+#panel_action_log_analysis_summary {
+  margin: 0 8px 8px;
+  width: calc(100% - 16px) !important;
+}
+
+#panel_action_log_analysis_activity,
+#panel_action_log_analysis_usage {
+  margin-bottom: 8px;
+  min-height: 440px;
+  width: calc(50% - 12px) !important;
+}
+
+#panel_action_log_analysis_activity {
+  margin-left: 8px;
+  margin-right: 4px;
+}
+
+#panel_action_log_analysis_usage {
+  margin-left: 4px;
+  margin-right: 8px;
+}
+
+#panel_action_log_analysis_performance {
+  clear: both;
+  margin: 0 8px 8px;
+  overflow: hidden;
+  width: calc(100% - 16px) !important;
+}
+
+.action_log_analysis .panel-header {
+  border-bottom: 1px solid #edf0f2;
+}
+
+.action-log-analysis-filters {
+  align-items: flex-end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px;
+
+  label {
+    color: #555;
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
+    gap: 4px;
+    width: 190px;
+  }
+
+  .user-filter {
+    flex: 1 1 240px;
+  }
+
+  .target-filter {
+    flex: 2 1 300px;
+  }
+
+  input,
+  select {
+    background: white;
+    border: 1px solid #bbb;
+    border-radius: 3px;
+    box-sizing: border-box;
+    height: 34px;
+    margin: 0;
+    min-width: 0;
+    padding: 4px 8px;
+    width: 100%;
+  }
+
+  .quick-ranges {
+    display: flex;
+    flex: 1 0 100%;
+    flex-wrap: wrap;
+    gap: 0;
+  }
+
+  button {
+    background: white;
+    border: 1px solid #aaa;
+    cursor: pointer;
+    height: 34px;
+    padding: 0 12px;
+  }
+
+  .quick-range + .quick-range {
+    border-left: 0;
+  }
+
+  .quick-range.active {
+    background: $main-color;
+    border-color: $main-color;
+    color: white;
+  }
+
+  .filter-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .apply-filters {
+    background: $main-color;
+    border-color: $main-color;
+    color: white;
+    width: 90px;
+
+    &:hover {
+      background: lighten($main-color, 5%);
+    }
+  }
+
+  .reset-filters {
+    width: 90px;
+  }
+}
+
+.analysis-stats {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 16px;
+}
+
+.analysis-stat {
+  background: #f5f5f5;
+  border-left: 3px solid $main-color;
+  padding: 10px 14px;
+
+  .label {
+    color: #666;
+    display: block;
+    font-size: 12px;
+  }
+
+  strong {
+    display: block;
+    font-size: 22px;
+    margin-top: 4px;
+  }
+}
+
+.analysis-chart {
+  height: 270px;
+  padding: 0 16px 16px;
+}
+
+.analysis-table-wrapper {
+  margin: 0 16px 16px;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.analysis-table {
+  border-collapse: collapse;
+  font-size: 13px;
+  width: 100%;
+
+  th,
+  td {
+    border-bottom: 1px solid #ddd;
+    overflow-wrap: anywhere;
+    padding: 7px 8px;
+    text-align: left;
+  }
+
+  th {
+    background: #f5f5f5;
+  }
+
+  .numeric {
+    text-align: right;
+    white-space: nowrap;
+  }
+}
+
+.usage-summary th:first-child,
+.usage-summary td:first-child {
+  width: 60%;
+}
+
+.performance-summary th:first-child,
+.performance-summary td:first-child {
+  width: 40%;
+}
+
+.performance-summary .numeric {
+  width: 15%;
+}
+
+// wulin_master floats the panel title, and without clear a heading placed
+// right after it wraps beside the float.
+.action_log_analysis h3 {
+  clear: both;
+  font-size: 15px;
+  margin: 14px 16px 8px;
+}
+
+.slow-requests {
+  max-height: 520px;
+  overflow-y: auto;
+
+  .requests {
+    min-width: 1100px;
+
+    // Paths with long query strings would otherwise take the width and
+    // collapse the other columns to a character or two.
+    th,
+    td {
+      white-space: nowrap;
+    }
+
+    td:nth-child(3),
+    td:nth-child(4) {
+      min-width: 200px;
+      white-space: normal;
+    }
+  }
+}
+
+@media (max-width: 900px) {
+  #panel_action_log_analysis_activity,
+  #panel_action_log_analysis_usage {
+    margin-left: 8px;
+    margin-right: 8px;
+    width: calc(100% - 16px) !important;
+  }
+
+  .analysis-stats {
+    grid-template-columns: 1fr;
+  }
+}

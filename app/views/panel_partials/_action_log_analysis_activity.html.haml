@@ -1,0 +1,4 @@
+.analysis-chart
+  %canvas#action-log-activity-chart
+%script#action-log-activity-data{type: "application/json"}
+  = raw json_escape(@analysis.activity_series.to_json)

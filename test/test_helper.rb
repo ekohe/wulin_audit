@@ -37,6 +37,10 @@ ActiveRecord::Schema.define do
     t.json :spans
     t.datetime :created_at
   end
+
+  create_table :permissions, force: true do |t|
+    t.string :name
+  end
 end
 
 # Stub the host app's current-user accessor, mirroring what WulinMaster provides.
@@ -70,9 +74,14 @@ Rails.instance_variable_set(:@application, Struct.new(:config).new(app_config))
 
 require "wulin_audit"
 
+class Permission < ActiveRecord::Base
+  reject_audit
+end
+
 # We don't boot a full Rails app here, so neither the engine's app/models
 # autoload path nor its after_initialize hook ever runs. Load the pieces
 # they'd normally wire up directly instead.
 require WulinAudit::Engine.root.join("app/models/wulin_audit/audit_log").to_s
 require WulinAudit::Engine.root.join("app/models/wulin_audit/action_log").to_s
+require WulinAudit::Engine.root.join("app/models/wulin_audit/action_log_analysis").to_s
 require "wulin_audit/action_log_subscriber"
