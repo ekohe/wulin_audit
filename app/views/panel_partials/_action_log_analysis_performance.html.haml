@@ -37,7 +37,11 @@
           %td= row[:created_at]
           %td= row[:user]
           %td= row[:target]
-          %td= row[:request]
+          %td.request
+            .request-cell
+              %span.request-path{title: row[:full_path]}= [row[:http_method], row[:path]].compact.join(" ")
+              - if row[:full_path].present?
+                %button.copy-request{type: "button", title: "Copy full path", data: {copy: row[:full_path]}} Copy
           %td.numeric= row[:status]
           %td.numeric= "#{number_with_delimiter(row[:duration])} ms"
           %td.numeric= row[:db_duration] ? "#{number_with_delimiter(row[:db_duration])} ms" : "—"

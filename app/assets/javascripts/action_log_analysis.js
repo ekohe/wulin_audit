@@ -165,6 +165,24 @@ window.WulinAuditAnalysis = (function() {
     }
   }
 
+  // Delegated once at load because init runs again on every panel reload.
+  document.addEventListener('click', function(event) {
+    var button = event.target.closest('.copy-request');
+    if (!button) return;
+
+    // navigator.clipboard is undefined outside secure contexts; the promise
+    // chain turns that into the failure branch.
+    Promise.resolve().then(function() {
+      return navigator.clipboard.writeText(button.dataset.copy);
+    }).then(function() {
+      button.textContent = 'Copied';
+      setTimeout(function() { button.textContent = 'Copy'; }, 1500);
+    }, function() {
+      button.textContent = 'Failed';
+      setTimeout(function() { button.textContent = 'Copy'; }, 1500);
+    });
+  });
+
   if (window.History && History.Adapter) {
     History.Adapter.bind(window, 'statechange', destroyCharts);
   }

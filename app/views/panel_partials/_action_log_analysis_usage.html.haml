@@ -3,7 +3,7 @@
 %script#action-log-users-data{type: "application/json"}
   = raw json_escape(@analysis.by_user.to_json)
 
-%h3 What is this user doing?
+%h3= @analysis.user ? "What is #{@analysis.user} doing?" : "What is this user doing?"
 .analysis-table-wrapper
   %table.analysis-table.usage-summary
     %thead

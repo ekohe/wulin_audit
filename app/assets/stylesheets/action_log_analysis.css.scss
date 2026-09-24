@@ -245,11 +245,35 @@
       white-space: nowrap;
     }
 
-    td:nth-child(3),
-    td:nth-child(4) {
+    td:nth-child(3) {
       min-width: 200px;
       white-space: normal;
     }
+  }
+
+  .request {
+    max-width: 360px;
+  }
+
+  .request-cell {
+    align-items: center;
+    display: flex;
+    gap: 6px;
+  }
+
+  .request-path {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .copy-request {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    cursor: pointer;
+    flex: none;
+    font-size: 11px;
+    padding: 1px 6px;
   }
 }
 
