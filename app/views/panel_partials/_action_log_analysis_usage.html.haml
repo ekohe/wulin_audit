@@ -9,8 +9,8 @@
     %thead
       %tr
         %th Controller#action
-        %th Requests
-        %th Average
+        %th.numeric Requests
+        %th.numeric Average
     %tbody
       - @analysis.by_action.each do |row|
         %tr

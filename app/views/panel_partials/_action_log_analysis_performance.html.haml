@@ -4,10 +4,10 @@
     %thead
       %tr
         %th Controller#action
-        %th Requests
-        %th Average
-        %th P95
-        %th Maximum
+        %th.numeric Requests
+        %th.numeric Average
+        %th.numeric P95
+        %th.numeric Maximum
     %tbody
       - @analysis.slow_by_action.each do |row|
         %tr
@@ -26,11 +26,11 @@
         %th User
         %th Controller#action
         %th Request
-        %th Status
-        %th Total
-        %th DB
-        %th View
-        %th Action
+        %th.numeric Status
+        %th.numeric Total
+        %th.numeric DB
+        %th.numeric View
+        %th.numeric Action
     %tbody
       - @analysis.slowest_requests.each do |row|
         %tr
