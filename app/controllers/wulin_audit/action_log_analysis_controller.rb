@@ -28,6 +28,7 @@ if defined? WulinMaster
         @analysis = WulinAudit::ActionLogAnalysis.new(
           from: from,
           to: to,
+          domain: params[:domain],
           user: params[:user],
           target: params[:target]
         )

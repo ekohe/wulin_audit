@@ -55,6 +55,7 @@ module WulinAudit
             nil
           end,
           request_ip: payload[:request]&.remote_ip,
+          host: payload[:request]&.host,
           http_method: payload[:method],
           path: payload[:path],
           controller: payload[:controller],

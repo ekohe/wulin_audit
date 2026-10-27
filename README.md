@@ -96,6 +96,7 @@ Each request writes one `WulinAudit::ActionLog` row:
 | `user_id` | `User.current_user.try(:id)` |
 | `user_email` | `User.current_user.try(:email)` |
 | `request_ip` | `request.remote_ip` |
+| `host` | `request.host`, the app's domain. Apps that share one database share one table, so this tells their rows apart |
 | `http_method` | GET / POST / PUT / DELETE / PATCH |
 | `path` | Request path |
 | `controller` | Controller class name |
@@ -183,7 +184,7 @@ end
 ```
 
 The analysis screen defaults to the last 24 hours. It supports quick and custom
-time ranges, user and controller/action filters, request activity charts, top
+time ranges, domain, user and controller/action filters, request activity charts, top
 users and actions, average and 95th-percentile
 duration, slow action groups, and the 100 slowest requests. Ranges are limited to
 six months, and time buckets are selected automatically to keep charts at 200
