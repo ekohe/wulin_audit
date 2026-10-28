@@ -11,12 +11,13 @@ module WulinAudit
       "1d" => 1.day
     }.freeze
 
-    attr_reader :from, :to, :user, :target
+    attr_reader :from, :to, :domain, :user, :target
 
-    def initialize(from:, to:, user: nil, target: nil)
+    def initialize(from:, to:, domain: nil, user: nil, target: nil)
       @to = to
       @from = [from, to - MAX_RANGE].max
       @interval = automatic_interval
+      @domain = domain.presence
       @user = user.presence
       @target = target.presence
     end
@@ -91,6 +92,10 @@ module WulinAudit
       end
     end
 
+    def domains
+      range_scope.where.not(host: [nil, ""]).distinct.order(:host).pluck(:host)
+    end
+
     def users
       range_scope.where.not(user_email: [nil, ""]).distinct.order(:user_email).pluck(:user_email)
     end
@@ -110,6 +115,7 @@ module WulinAudit
     def scope
       @scope ||= begin
         relation = range_scope
+        relation = relation.where(host: domain) if domain
         relation = relation.where(user_email: user) if user
         if target
           controller, action = target.split("#", 2)

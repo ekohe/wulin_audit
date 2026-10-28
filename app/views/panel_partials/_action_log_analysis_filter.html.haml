@@ -9,6 +9,10 @@
   %label
     To
     %input#to{type: "text", name: "to", data: {datetime: @analysis.to.iso8601}}
+  %label.domain-filter
+    Domain
+    %select.browser-default{name: "domain"}
+      = options_for_select([["All domains", ""]] + @analysis.domains.map { |domain| [domain, domain] }, @analysis.domain)
   %label.user-filter
     User
     %select.browser-default{name: "user"}

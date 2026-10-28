@@ -38,6 +38,11 @@ ActiveRecord::Schema.define do
     t.datetime :created_at
   end
 
+  ActiveRecord::Migration.suppress_messages do
+    require_relative "../db/migrate/20261027090000_add_host_to_action_logs"
+    AddHostToActionLogs.migrate(:up)
+  end
+
   create_table :permissions, force: true do |t|
     t.string :name
   end

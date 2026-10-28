@@ -56,7 +56,7 @@ class ActionLogSubscriberTest < Minitest::Test
     WulinAudit::ActionLogSubscriber.push_span("db", 1.0)
     WulinAudit::ActionLogSubscriber.push_span("view", 2.5)
 
-    mock_request = Struct.new(:request_id, :remote_ip).new("req-123", "10.0.0.1")
+    mock_request = Struct.new(:request_id, :remote_ip, :host).new("req-123", "10.0.0.1", "app.example.com")
 
     ActiveSupport::Notifications.instrument(
       "process_action.action_controller",
@@ -73,6 +73,7 @@ class ActionLogSubscriberTest < Minitest::Test
     refute_nil log
     assert_equal "req-123", log.request_id
     assert_equal "10.0.0.1", log.request_ip
+    assert_equal "app.example.com", log.host
     assert_equal "GET", log.http_method
     assert_equal "/posts", log.path
     assert_equal "posts", log.controller
@@ -94,7 +95,7 @@ class ActionLogSubscriberTest < Minitest::Test
 
     ActiveSupport::Notifications.instrument(
       "process_action.action_controller",
-      request: Struct.new(:request_id, :remote_ip).new("runtime-1", "10.0.0.6"),
+      request: Struct.new(:request_id, :remote_ip, :host).new("runtime-1", "10.0.0.6", "app.example.com"),
       method: "GET", path: "/posts", controller: "posts", action: "index",
       params: {}, status: 200
     ) do |payload|
@@ -154,7 +155,7 @@ class ActionLogSubscriberTest < Minitest::Test
   def test_notification_writes_the_row
     ActiveSupport::Notifications.instrument(
       "process_action.action_controller",
-      request: Struct.new(:request_id, :remote_ip).new("e2e-1", "10.0.0.4"),
+      request: Struct.new(:request_id, :remote_ip, :host).new("e2e-1", "10.0.0.4", "app.example.com"),
       method: "GET", path: "/posts", controller: "posts", action: "index",
       params: {}, status: 200
     ) {}
@@ -165,7 +166,7 @@ class ActionLogSubscriberTest < Minitest::Test
   def test_write_does_not_bill_its_own_insert_to_the_next_request
     ActiveSupport::Notifications.instrument(
       "process_action.action_controller",
-      request: Struct.new(:request_id, :remote_ip).new("span-leak-1", "10.0.0.5"),
+      request: Struct.new(:request_id, :remote_ip, :host).new("span-leak-1", "10.0.0.5", "app.example.com"),
       method: "GET", path: "/posts", controller: "posts", action: "index",
       params: {}, status: 200
     ) {}
@@ -180,7 +181,7 @@ class ActionLogSubscriberTest < Minitest::Test
 
     ActiveSupport::Notifications.instrument(
       "process_action.action_controller",
-      request: Struct.new(:request_id, :remote_ip).new("once-1", "10.0.0.3"),
+      request: Struct.new(:request_id, :remote_ip, :host).new("once-1", "10.0.0.3", "app.example.com"),
       method: "GET", path: "/posts", controller: "posts", action: "index",
       params: {}, status: 200
     ) {}
@@ -222,7 +223,7 @@ class ActionLogSubscriberTest < Minitest::Test
     WulinAudit::ActionLog.delete_all
     WulinAudit::ActionLogSubscriber.flush_spans
 
-    mock_request = Struct.new(:request_id, :remote_ip).new("req-e2e", "10.0.0.2")
+    mock_request = Struct.new(:request_id, :remote_ip, :host).new("req-e2e", "10.0.0.2", "app.example.com")
 
     ActiveSupport::Notifications.instrument("sql.active_record", name: "Post Load", sql: "SELECT * FROM posts") {}
     ActiveSupport::Notifications.instrument("render_template.action_view", identifier: "/app/views/posts/index.html.erb") {}

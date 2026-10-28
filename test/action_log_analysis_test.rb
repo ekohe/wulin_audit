@@ -33,6 +33,57 @@ class ActionLogAnalysisTest < Minitest::Test
     )
   end
 
+  def test_domain_filter_scopes_every_panel
+    create_log(host: "olatu.example.com", user_email: "one@example.com", controller: "PeopleController", duration: 10)
+    create_log(host: "ceres.example.com", user_email: "two@example.com", controller: "TeamsController", duration: 50)
+    create_log(host: nil, user_email: "three@example.com", controller: "OldController", duration: 90)
+
+    result = analysis(domain: "olatu.example.com")
+
+    assert_equal 1, result.summary[:total]
+    assert_in_delta 10, result.summary[:average_duration]
+    assert_equal 1, result.activity_series.sum { |point| point[:y] }
+    assert_equal [{label: "one@example.com", count: 1}], result.by_user
+    assert_equal ["PeopleController#index"], result.by_action.map { |row| row[:target] }
+    assert_equal ["PeopleController#index"], result.slow_by_action.map { |row| row[:target] }
+    assert_equal ["PeopleController#index"], result.slowest_requests.map { |row| row[:target] }
+  end
+
+  def test_all_domains_include_rows_without_host
+    create_log(host: "olatu.example.com")
+    create_log(host: "ceres.example.com")
+    create_log(host: nil)
+
+    assert_equal 3, analysis.summary[:total]
+    assert_equal 3, analysis(domain: "").summary[:total]
+  end
+
+  def test_domain_without_rows_returns_empty_panels
+    create_log(host: "olatu.example.com")
+
+    result = analysis(domain: "atlas.example.com")
+
+    assert_equal 0, result.summary[:total]
+    assert_equal 0, result.activity_series.sum { |point| point[:y] }
+    assert_empty result.by_user
+    assert_empty result.by_action
+    assert_empty result.slow_by_action
+    assert_empty result.slowest_requests
+  end
+
+  def test_domain_options_list_known_hosts_in_range
+    create_log(host: "olatu.example.com")
+    create_log(host: "ceres.example.com")
+    create_log(host: "olatu.example.com")
+    create_log(host: nil)
+    create_log(host: "")
+    create_log(host: "atlas.example.com", created_at: TO + 1.minute)
+
+    result = analysis(domain: "olatu.example.com")
+
+    assert_equal ["ceres.example.com", "olatu.example.com"], result.domains
+  end
+
   def test_summary_calculates_average_and_p95
     [10, 20, 30, 40, 100].each { |duration| create_log(duration: duration) }
 
