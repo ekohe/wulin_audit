@@ -1,13 +1,22 @@
 @import "setting/setting";
 @import "base";
 
+$analysis-border: #e1e5e9;
+$analysis-muted: #6b7280;
+$analysis-slow: #b26a00;
+$analysis-very-slow: #c62828;
+
 .content-panel_action_log_analysis_filter,
 .action_log_analysis {
   --action-log-analysis-color: #{$main-color};
 }
 
+// wulin_master floats the panels; a wrapping flex row lays them out instead.
 .content-panel_action_log_analysis_filter {
+  align-content: flex-start;
   background: #f3f5f7;
+  display: flex;
+  flex-wrap: wrap;
   overflow-y: auto !important;
 }
 
@@ -23,8 +32,9 @@
 #panel_action_log_analysis_usage,
 #panel_action_log_analysis_performance {
   background: white;
-  border: 1px solid #e1e5e9;
+  border: 1px solid $analysis-border;
   border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   box-sizing: border-box;
   max-width: 100%;
 }
@@ -39,16 +49,26 @@
   width: calc(100% - 16px) !important;
 }
 
+// Fixed height: the chart keeps a useful size, and the Usage table scrolls
+// inside its panel instead of making the row taller.
 #panel_action_log_analysis_activity,
 #panel_action_log_analysis_usage {
+  display: flex;
+  flex-direction: column;
+  height: 440px;
   margin-bottom: 8px;
-  min-height: 440px;
+  overflow: hidden;
   width: calc(50% - 12px) !important;
 }
 
 #panel_action_log_analysis_activity {
   margin-left: 8px;
   margin-right: 4px;
+
+  .analysis-chart {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
 }
 
 #panel_action_log_analysis_usage {
@@ -57,7 +77,6 @@
 }
 
 #panel_action_log_analysis_performance {
-  clear: both;
   margin: 0 8px 8px;
   overflow: hidden;
   width: calc(100% - 16px) !important;
@@ -65,80 +84,143 @@
 
 .action_log_analysis .panel-header {
   border-bottom: 1px solid #edf0f2;
+  flex: none;
 }
 
+// Toolbar: one line on wide screens, wrapping by field on narrow ones.
 .action-log-analysis-filters {
   align-items: flex-end;
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  padding: 14px;
+  gap: 10px 12px;
+  padding: 12px 14px;
 
-  label {
-    color: #555;
+  .filter-field {
     display: flex;
     flex-direction: column;
-    font-size: 12px;
     gap: 4px;
-    width: 190px;
+    min-width: 0;
+  }
+
+  .filter-label {
+    color: $analysis-muted;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 14px;
+    text-transform: uppercase;
+  }
+
+  .time-filter {
+    flex: 0 0 140px;
+  }
+
+  .domain-filter {
+    flex: 1 1 150px;
   }
 
   .user-filter {
-    flex: 1 1 240px;
+    flex: 1 1 190px;
   }
 
   .target-filter {
-    flex: 2 1 300px;
+    flex: 2 1 230px;
+  }
+
+  input,
+  select,
+  button {
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 13px;
+    height: 32px;
+    margin: 0;
   }
 
   input,
   select {
-    background: white;
-    border: 1px solid #bbb;
-    border-radius: 3px;
-    box-sizing: border-box;
-    height: 34px;
-    margin: 0;
+    background-color: white;
+    border: 1px solid #c8cdd2;
+    color: #333;
+    font-variant-numeric: tabular-nums;
     min-width: 0;
-    padding: 4px 8px;
+    padding: 0 10px;
     width: 100%;
+
+    &:hover {
+      border-color: #9aa1a8;
+    }
+
+    &:focus {
+      border-color: $main-color;
+      box-shadow: 0 0 0 2px rgba($main-color, 0.15);
+      outline: none;
+    }
   }
 
-  .quick-ranges {
-    display: flex;
-    flex: 1 0 100%;
-    flex-wrap: wrap;
-    gap: 0;
+  // The native chevron differs from browser to browser; draw one that
+  // matches the inputs.
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236b7280' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-position: right 10px center;
+    background-repeat: no-repeat;
+    padding-right: 28px;
+    text-overflow: ellipsis;
   }
 
   button {
     background: white;
-    border: 1px solid #aaa;
+    border: 1px solid #c8cdd2;
+    color: #333;
     cursor: pointer;
-    height: 34px;
     padding: 0 12px;
+
+    &:hover {
+      background: #f5f7f9;
+    }
   }
 
-  .quick-range + .quick-range {
-    border-left: 0;
-  }
+  .quick-ranges {
+    display: flex;
 
-  .quick-range.active {
-    background: $main-color;
-    border-color: $main-color;
-    color: white;
+    .quick-range {
+      border-radius: 0;
+      min-width: 40px;
+      padding: 0 10px;
+    }
+
+    .quick-range + .quick-range {
+      margin-left: -1px;
+    }
+
+    .quick-range:first-child {
+      border-radius: 4px 0 0 4px;
+    }
+
+    .quick-range:last-child {
+      border-radius: 0 4px 4px 0;
+    }
+
+    .quick-range.active {
+      background: $main-color;
+      border-color: $main-color;
+      color: white;
+      position: relative;
+    }
   }
 
   .filter-actions {
     display: flex;
     gap: 8px;
+    margin-left: auto;
   }
 
   .apply-filters {
     background: $main-color;
     border-color: $main-color;
     color: white;
-    width: 90px;
+    min-width: 76px;
 
     &:hover {
       background: lighten($main-color, 5%);
@@ -146,38 +228,83 @@
   }
 
   .reset-filters {
-    width: 90px;
+    min-width: 76px;
   }
 }
 
 .analysis-stats {
   display: grid;
-  gap: 16px;
+  gap: 12px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  padding: 16px;
+  padding: 12px;
 }
 
 .analysis-stat {
-  background: #f5f5f5;
+  background: #f8f9fa;
+  border: 1px solid #edf0f2;
   border-left: 3px solid $main-color;
+  border-radius: 4px;
   padding: 10px 14px;
 
   .label {
-    color: #666;
+    color: $analysis-muted;
     display: block;
-    font-size: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
   }
 
   strong {
     display: block;
     font-size: 22px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
     margin-top: 4px;
   }
 }
 
+.analysis-chart-meta {
+  color: $analysis-muted;
+  flex: none;
+  font-size: 12px;
+  padding: 10px 16px 0;
+  text-align: right;
+}
+
 .analysis-chart {
+  box-sizing: border-box;
   height: 270px;
-  padding: 0 16px 16px;
+  padding: 8px 16px 16px;
+  position: relative;
+}
+
+.users-chart {
+  flex: none;
+  height: 170px;
+}
+
+.analysis-empty {
+  align-items: center;
+  color: $analysis-muted;
+  display: flex;
+  flex: 1 1 auto;
+  font-size: 13px;
+  justify-content: center;
+  min-height: 120px;
+  padding: 24px;
+}
+
+// wulin_master floats the panel title, and without clear a heading placed
+// right after it wraps beside the float.
+.action_log_analysis .analysis-subtitle {
+  clear: both;
+  color: #555;
+  flex: none;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  margin: 12px 16px 8px;
 }
 
 .analysis-table-wrapper {
@@ -193,25 +320,70 @@
 
   th,
   td {
-    border-bottom: 1px solid #ddd;
-    overflow-wrap: anywhere;
+    border-bottom: 1px solid #edf0f2;
     padding: 7px 8px;
     text-align: left;
   }
 
+  // A controller name longer than its fixed column breaks instead of
+  // spilling into the next column.
+  td {
+    overflow-wrap: anywhere;
+  }
+
+  // Stays visible in the tables that scroll inside their panel.
   th {
-    background: #f5f5f5;
+    background: #f5f6f8;
+    color: #555;
+    font-weight: 500;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  tbody tr:hover {
+    background: #fafbfc;
   }
 
   .numeric {
+    font-variant-numeric: tabular-nums;
     text-align: right;
     white-space: nowrap;
   }
+
+  .duration.slow {
+    color: $analysis-slow;
+    font-weight: 500;
+  }
+
+  .duration.very-slow {
+    color: $analysis-very-slow;
+    font-weight: 500;
+  }
 }
 
-.usage-summary th:first-child,
-.usage-summary td:first-child {
-  width: 60%;
+// The Usage panel has a fixed height; the table takes what is left and
+// scrolls.
+.usage-actions {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.usage-summary,
+.performance-summary,
+.requests {
+  table-layout: fixed;
+}
+
+.usage-summary {
+  .count {
+    width: 76px;
+  }
+
+  .duration-column {
+    width: 104px;
+  }
 }
 
 .performance-summary th:first-child,
@@ -219,61 +391,119 @@
   width: 40%;
 }
 
-.performance-summary .numeric {
-  width: 15%;
-}
-
-// wulin_master floats the panel title, and without clear a heading placed
-// right after it wraps beside the float.
-.action_log_analysis h3 {
-  clear: both;
-  font-size: 15px;
-  margin: 14px 16px 8px;
-}
-
 .slow-requests {
   max-height: 520px;
   overflow-y: auto;
 
+  // Fixed column widths keep every column visible; long values end with an
+  // ellipsis and show in full on hover. Below the minimum width the table
+  // scrolls inside the panel instead of squeezing the Request column to 0.
   .requests {
-    min-width: 1100px;
+    min-width: 1300px;
 
-    // Paths with long query strings would otherwise take the width and
-    // collapse the other columns to a character or two.
     th,
     td {
+      overflow: hidden;
+      text-overflow: ellipsis;
       white-space: nowrap;
     }
 
-    td:nth-child(3) {
-      min-width: 200px;
-      white-space: normal;
+    .datetime {
+      font-variant-numeric: tabular-nums;
+      width: 160px;
     }
-  }
 
-  .request {
-    max-width: 360px;
+    .user {
+      width: 14%;
+    }
+
+    .target {
+      white-space: normal;
+      width: 22%;
+    }
+
+    .status {
+      width: 64px;
+    }
+
+    // Fits "28,194.55 ms".
+    .duration-column {
+      width: 112px;
+    }
   }
 
   .request-cell {
     align-items: center;
     display: flex;
-    gap: 6px;
+    gap: 4px;
   }
 
   .request-path {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
+  // One icon per row, shown on row hover or keyboard focus.
   .copy-request {
-    background: #fff;
-    border: 1px solid #ccc;
+    align-items: center;
+    background: none;
+    border: 0;
     border-radius: 3px;
+    color: $analysis-muted;
     cursor: pointer;
+    display: inline-flex;
     flex: none;
-    font-size: 11px;
-    padding: 1px 6px;
+    height: 22px;
+    justify-content: center;
+    opacity: 0;
+    padding: 0;
+    width: 22px;
+
+    .material-icons {
+      font-size: 15px;
+    }
+
+    &:hover {
+      background: #eef0f2;
+      color: #333;
+    }
+  }
+
+  tr:hover .copy-request,
+  .copy-request:focus,
+  .copy-request.copy-result {
+    opacity: 1;
+  }
+}
+
+.status-badge {
+  border-radius: 10px;
+  display: inline-block;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  line-height: 18px;
+  padding: 0 7px;
+
+  &.status-2xx {
+    background: #e6f4ea;
+    color: #1e7b34;
+  }
+
+  &.status-3xx {
+    background: #eceff1;
+    color: #546e7a;
+  }
+
+  &.status-4xx {
+    background: #fff4e0;
+    color: #a15c00;
+  }
+
+  &.status-5xx {
+    background: #fdecea;
+    color: #c62828;
   }
 }
 

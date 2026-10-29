@@ -13,6 +13,8 @@ if defined? WulinMaster
       controller_for_screen ActionLogAnalysisScreen
       reject_action_log
 
+      helper WulinAudit::ActionLogAnalysisHelper
+
       def index
         default_to = Time.current
         default_from = default_to - 24.hours

@@ -1,17 +1,33 @@
 module WulinAudit
   class ActionLogAnalysis
     MAX_RANGE = 6.months
-    MAX_BUCKETS = 200
+    # About 100 buckets keeps each bar several pixels wide in a half-width
+    # panel, so sparse traffic does not draw as 1px spikes.
+    MAX_BUCKETS = 100
     INTERVALS = {
       "1m" => 1.minute,
       "5m" => 5.minutes,
       "15m" => 15.minutes,
       "1h" => 1.hour,
+      "3h" => 3.hours,
       "6h" => 6.hours,
-      "1d" => 1.day
+      "12h" => 12.hours,
+      "1d" => 1.day,
+      "2d" => 2.days
+    }.freeze
+    INTERVAL_LABELS = {
+      "1m" => "minute",
+      "5m" => "5 minutes",
+      "15m" => "15 minutes",
+      "1h" => "hour",
+      "3h" => "3 hours",
+      "6h" => "6 hours",
+      "12h" => "12 hours",
+      "1d" => "day",
+      "2d" => "2 days"
     }.freeze
 
-    attr_reader :from, :to, :domain, :user, :target
+    attr_reader :from, :to, :domain, :user, :target, :interval
 
     def initialize(from:, to:, domain: nil, user: nil, target: nil)
       @to = to
@@ -33,6 +49,10 @@ module WulinAudit
       (first_bucket..last_bucket).step(interval_seconds).map do |timestamp|
         {x: Time.at(timestamp).utc.iso8601, y: counts.fetch(timestamp, 0)}
       end
+    end
+
+    def interval_label
+      INTERVAL_LABELS.fetch(interval)
     end
 
     def by_user
@@ -127,7 +147,7 @@ module WulinAudit
 
     def automatic_interval
       seconds = to.to_i - from.to_i
-      INTERVALS.find { |_name, value| seconds / value <= MAX_BUCKETS }&.first || "1d"
+      INTERVALS.find { |_name, value| seconds / value <= MAX_BUCKETS }&.first || INTERVALS.keys.last
     end
 
     def interval_seconds

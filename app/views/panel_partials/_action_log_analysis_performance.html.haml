@@ -1,52 +1,57 @@
-%h3 Slow controller#action
-.analysis-table-wrapper
-  %table.analysis-table.performance-summary
-    %thead
-      %tr
-        %th Controller#action
-        %th.numeric Requests
-        %th.numeric Average
-        %th.numeric P95
-        %th.numeric Maximum
-    %tbody
-      - @analysis.slow_by_action.each do |row|
+- slow_by_action = @analysis.slow_by_action
+- if slow_by_action.empty?
+  .analysis-empty No requests in this range
+- else
+  %h3.analysis-subtitle Slow controller#action
+  .analysis-table-wrapper
+    %table.analysis-table.performance-summary
+      %thead
         %tr
-          %td= row[:target]
-          %td.numeric= number_with_delimiter(row[:count])
-          %td.numeric= "#{number_with_delimiter(row[:average_duration])} ms"
-          %td.numeric= "#{number_with_delimiter(row[:p95_duration])} ms"
-          %td.numeric= "#{number_with_delimiter(row[:maximum_duration])} ms"
+          %th Controller#action
+          %th.numeric Requests
+          %th.numeric Average
+          %th.numeric P95
+          %th.numeric Maximum
+      %tbody
+        - slow_by_action.each do |row|
+          %tr
+            %td= breakable_target(row[:target])
+            %td.numeric= number_with_delimiter(row[:count])
+            %td.numeric= analysis_duration(row[:average_duration])
+            %td.numeric= analysis_duration(row[:p95_duration])
+            %td.numeric= analysis_duration(row[:maximum_duration])
 
-%h3 100 slowest requests
-.analysis-table-wrapper.slow-requests
-  %table.analysis-table.requests
-    %thead
-      %tr
-        %th Datetime (UTC)
-        %th User
-        %th Controller#action
-        %th Request
-        %th.numeric Status
-        %th.numeric Total
-        %th.numeric DB
-        %th.numeric View
-        %th.numeric Action
-    %tbody
-      - @analysis.slowest_requests.each do |row|
+  %h3.analysis-subtitle 100 slowest requests
+  .analysis-table-wrapper.slow-requests
+    %table.analysis-table.requests
+      %thead
         %tr
-          %td= row[:created_at]
-          %td= row[:user]
-          %td= row[:target]
-          %td.request
-            .request-cell
-              %span.request-path{title: row[:full_path]}= [row[:http_method], row[:path]].compact.join(" ")
-              - if row[:full_path].present?
-                %button.copy-request{type: "button", title: "Copy full path", data: {copy: row[:full_path]}} Copy
-          %td.numeric= row[:status]
-          %td.numeric= "#{number_with_delimiter(row[:duration])} ms"
-          %td.numeric= row[:db_duration] ? "#{number_with_delimiter(row[:db_duration])} ms" : "—"
-          %td.numeric= row[:view_duration] ? "#{number_with_delimiter(row[:view_duration])} ms" : "—"
-          %td.numeric= row[:action_duration] ? "#{number_with_delimiter(row[:action_duration])} ms" : "—"
+          %th.datetime Datetime (UTC)
+          %th.user User
+          %th.target Controller#action
+          %th Request
+          %th.status Status
+          %th.numeric.duration-column Total
+          %th.numeric.duration-column DB
+          %th.numeric.duration-column View
+          %th.numeric.duration-column Action
+      %tbody
+        - @analysis.slowest_requests.each do |row|
+          %tr
+            %td.datetime= analysis_datetime(row[:created_at])
+            %td{title: row[:user]}= row[:user]
+            %td.target= breakable_target(row[:target])
+            %td.request
+              .request-cell
+                %span.request-path{title: row[:full_path]}= [row[:http_method], row[:path]].compact.join(" ")
+                - if row[:full_path].present?
+                  %button.copy-request{type: "button", title: "Copy full path", "aria-label": "Copy full path", data: {copy: row[:full_path]}}
+                    %i.material-icons content_copy
+            %td.status= status_badge(row[:status])
+            %td.numeric= analysis_duration(row[:duration])
+            %td.numeric= analysis_duration(row[:db_duration])
+            %td.numeric= analysis_duration(row[:view_duration])
+            %td.numeric{title: ("Not shown: DB + View exceed the total for this request" if row[:action_duration].nil? && row[:duration])}= analysis_duration(row[:action_duration])
 
 :javascript
   WulinAuditAnalysis.init();

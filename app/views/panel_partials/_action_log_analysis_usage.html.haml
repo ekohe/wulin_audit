@@ -1,19 +1,23 @@
-.analysis-chart
-  %canvas#action-log-users-chart
-%script#action-log-users-data{type: "application/json"}
-  = raw json_escape(@analysis.by_user.to_json)
+- by_user = @analysis.by_user
+- if by_user.empty?
+  .analysis-empty No requests in this range
+- else
+  .analysis-chart.users-chart
+    %canvas#action-log-users-chart
+  %script#action-log-users-data{type: "application/json"}
+    = raw json_escape(by_user.to_json)
 
-%h3= @analysis.user ? "What is #{@analysis.user} doing?" : "What is this user doing?"
-.analysis-table-wrapper
-  %table.analysis-table.usage-summary
-    %thead
-      %tr
-        %th Controller#action
-        %th.numeric Requests
-        %th.numeric Average
-    %tbody
-      - @analysis.by_action.each do |row|
+  %h3.analysis-subtitle= @analysis.user ? "What is #{@analysis.user} doing?" : "What is this user doing?"
+  .analysis-table-wrapper.usage-actions
+    %table.analysis-table.usage-summary
+      %thead
         %tr
-          %td= row[:target]
-          %td.numeric= number_with_delimiter(row[:count])
-          %td.numeric= row[:average_duration] ? "#{number_with_delimiter(row[:average_duration])} ms" : "—"
+          %th Controller#action
+          %th.numeric.count Requests
+          %th.numeric.duration-column Average
+      %tbody
+        - @analysis.by_action.each do |row|
+          %tr
+            %td= breakable_target(row[:target])
+            %td.numeric= number_with_delimiter(row[:count])
+            %td.numeric= analysis_duration(row[:average_duration])
