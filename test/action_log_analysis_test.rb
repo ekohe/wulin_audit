@@ -134,9 +134,17 @@ class ActionLogAnalysisTest < Minitest::Test
   end
 
   def test_auto_interval_keeps_bucket_count_bounded
-    result = WulinAudit::ActionLogAnalysis.new(from: FROM, to: FROM + 30.days)
+    result = WulinAudit::ActionLogAnalysis.new(from: FROM, to: FROM + 6.months)
 
-    assert_operator result.activity_series.length, :<=, 200
+    # +1: an unaligned range can touch one extra bucket.
+    assert_operator result.activity_series.length, :<=, WulinAudit::ActionLogAnalysis::MAX_BUCKETS + 1
+  end
+
+  def test_interval_suits_the_range
+    assert_equal "15 minutes", WulinAudit::ActionLogAnalysis.new(from: FROM, to: FROM + 24.hours).interval_label
+    assert_equal "3 hours", WulinAudit::ActionLogAnalysis.new(from: FROM, to: FROM + 7.days).interval_label
+    assert_equal "12 hours", WulinAudit::ActionLogAnalysis.new(from: FROM, to: FROM + 30.days).interval_label
+    assert_equal "2 days", WulinAudit::ActionLogAnalysis.new(from: FROM, to: FROM + 6.months).interval_label
   end
 
   def test_range_is_limited_to_six_months

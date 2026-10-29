@@ -1,24 +1,26 @@
 %form#action-log-analysis-filters.action-log-analysis-filters{action: "/wulin_audit/action_log_analysis", method: "get", data: {range: @range}}
   %input{type: "hidden", name: "screen", value: "ActionLogAnalysisScreen"}
-  .quick-ranges
-    - WulinAudit::ActionLogAnalysisController::QUICK_RANGES.each do |label, duration|
-      %button.quick-range{type: "button", class: ("active" if @range == label), data: {range: label, seconds: duration.to_i}}= label
-  %label
-    From
-    %input#from{type: "text", name: "from", data: {datetime: @analysis.from.iso8601}}
-  %label
-    To
-    %input#to{type: "text", name: "to", data: {datetime: @analysis.to.iso8601}}
-  %label.domain-filter
-    Domain
+  .filter-field.range-filter
+    %span.filter-label Range
+    .quick-ranges{role: "group", "aria-label": "Range"}
+      - WulinAudit::ActionLogAnalysisController::QUICK_RANGES.each do |label, duration|
+        %button.quick-range{type: "button", class: ("active" if @range == label), data: {range: label, seconds: duration.to_i}}= label
+  %label.filter-field.time-filter
+    %span.filter-label From
+    %input#from.browser-default{type: "text", name: "from", data: {datetime: @analysis.from.iso8601}}
+  %label.filter-field.time-filter
+    %span.filter-label To
+    %input#to.browser-default{type: "text", name: "to", data: {datetime: @analysis.to.iso8601}}
+  %label.filter-field.domain-filter
+    %span.filter-label Domain
     %select.browser-default{name: "domain"}
       = options_for_select([["All domains", ""]] + @analysis.domains.map { |domain| [domain, domain] }, @analysis.domain)
-  %label.user-filter
-    User
+  %label.filter-field.user-filter
+    %span.filter-label User
     %select.browser-default{name: "user"}
       = options_for_select([["All users", ""]] + @analysis.users.map { |email| [email, email] }, @analysis.user)
-  %label.target-filter
-    Controller#action
+  %label.filter-field.target-filter
+    %span.filter-label Controller#action
     %select.browser-default{name: "target"}
       = options_for_select([["All actions", ""]] + @analysis.targets.map { |target| [target, target] }, @analysis.target)
   .filter-actions

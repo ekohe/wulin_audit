@@ -81,6 +81,14 @@ class ActionLogModelTest < Minitest::Test
     assert_in_delta 100.0, log.action_duration
   end
 
+  def test_action_duration_nil_when_spans_exceed_duration
+    log = WulinAudit::ActionLog.new(
+      duration: 7352.18,
+      spans: {"db" => {"count" => 5, "duration" => 1.96}, "view" => {"count" => 11, "duration" => 8070.31}}
+    )
+    assert_nil log.action_duration
+  end
+
   def test_action_duration_nil_without_duration
     log = WulinAudit::ActionLog.new
     assert_nil log.action_duration

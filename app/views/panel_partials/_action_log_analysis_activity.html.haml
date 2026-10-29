@@ -1,4 +1,8 @@
-.analysis-chart
-  %canvas#action-log-activity-chart
-%script#action-log-activity-data{type: "application/json"}
-  = raw json_escape(@analysis.activity_series.to_json)
+- if @analysis.summary[:total].to_i.zero?
+  .analysis-empty No requests in this range
+- else
+  .analysis-chart-meta= "Requests per #{@analysis.interval_label} (UTC)"
+  .analysis-chart
+    %canvas#action-log-activity-chart
+  %script#action-log-activity-data{type: "application/json"}
+    = raw json_escape(@analysis.activity_series.to_json)
