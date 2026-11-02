@@ -10,7 +10,9 @@
           %th Controller#action
           %th.numeric Requests
           %th.numeric Average
+          %th.numeric P50
           %th.numeric P95
+          %th.numeric P99
           %th.numeric Maximum
       %tbody
         - slow_by_action.each do |row|
@@ -18,7 +20,9 @@
             %td= breakable_target(row[:target])
             %td.numeric= number_with_delimiter(row[:count])
             %td.numeric= analysis_duration(row[:average_duration])
+            %td.numeric= analysis_duration(row[:p50_duration])
             %td.numeric= analysis_duration(row[:p95_duration])
+            %td.numeric= analysis_duration(row[:p99_duration])
             %td.numeric= analysis_duration(row[:maximum_duration])
 
   %h3.analysis-subtitle 100 slowest requests

@@ -168,18 +168,13 @@ window.WulinAuditAnalysis = (function() {
       .inputmask('wulinDateTime')
       .flatpickr(fpMergeConfigs({}, fpConfigFormDateTime, onCalendarOpenClose));
 
-    // flatpickr closes an open calendar on a document click and cancels that
-    // click, so the first Apply click would only close the calendar. Closing
-    // it on mousedown lets the click submit.
-    form.querySelector('.apply-filters').addEventListener('mousedown', function() {
-      form.querySelectorAll('input[data-datetime]').forEach(function(input) {
-        if (input._flatpickr) input._flatpickr.close();
-      });
-    });
-
     form.addEventListener('submit', function(event) {
       event.preventDefault();
       submitFilters(form);
+    });
+
+    form.querySelectorAll('select').forEach(function(select) {
+      select.addEventListener('change', function() { submitFilters(form); });
     });
 
     form.querySelectorAll('input[data-datetime]').forEach(function(input) {
@@ -188,6 +183,12 @@ window.WulinAuditAnalysis = (function() {
         form.querySelectorAll('.quick-range').forEach(function(button) {
           button.classList.remove('active');
         });
+
+        // Wait until both dates are complete and in order; the server
+        // replaces an invalid range with the last 24 hours.
+        var from = parseWulinDateTime(form.querySelector('[name="from"]').value);
+        var to = parseWulinDateTime(form.querySelector('[name="to"]').value);
+        if (from && to && from < to) submitFilters(form);
       });
     });
 
@@ -203,11 +204,6 @@ window.WulinAuditAnalysis = (function() {
         form.dataset.range = button.dataset.range;
         submitFilters(form);
       });
-    });
-
-    form.querySelector('.reset-filters').addEventListener('click', function() {
-      form.querySelectorAll('select').forEach(function(select) { select.value = ''; });
-      form.querySelector('.quick-range[data-range="24h"]').click();
     });
   }
 

@@ -23,6 +23,3 @@
     %span.filter-label Controller#action
     %select.browser-default{name: "target"}
       = options_for_select([["All actions", ""]] + @analysis.targets.map { |target| [target, target] }, @analysis.target)
-  .filter-actions
-    %button.apply-filters{type: "submit"} Apply
-    %button.reset-filters{type: "button"} Reset

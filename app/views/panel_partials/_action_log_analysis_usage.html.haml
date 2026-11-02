@@ -15,9 +15,15 @@
           %th Controller#action
           %th.numeric.count Requests
           %th.numeric.duration-column Average
+          %th.numeric.duration-column P50
+          %th.numeric.duration-column P95
+          %th.numeric.duration-column P99
       %tbody
         - @analysis.by_action.each do |row|
           %tr
             %td= breakable_target(row[:target])
             %td.numeric= number_with_delimiter(row[:count])
             %td.numeric= analysis_duration(row[:average_duration])
+            %td.numeric= analysis_duration(row[:p50_duration])
+            %td.numeric= analysis_duration(row[:p95_duration])
+            %td.numeric= analysis_duration(row[:p99_duration])
