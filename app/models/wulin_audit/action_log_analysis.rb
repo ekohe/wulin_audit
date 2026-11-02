@@ -27,6 +27,8 @@ module WulinAudit
       "2d" => "2 days"
     }.freeze
 
+    PERCENTILES = {"p50_duration" => 0.5, "p95_duration" => 0.95, "p99_duration" => 0.99}.freeze
+
     attr_reader :from, :to, :domain, :user, :target, :interval
 
     def initialize(from:, to:, domain: nil, user: nil, target: nil)
@@ -66,7 +68,7 @@ module WulinAudit
 
     def by_action
       scope.where.not(controller: [nil, ""])
-        .select(:controller, :action, "COUNT(*) AS request_count", "AVG(duration) AS average_duration")
+        .select(:controller, :action, "COUNT(*) AS request_count", "AVG(duration) AS average_duration", *postgres_percentile_columns)
         .group(:controller, :action)
         .order(Arel.sql("COUNT(*) DESC"))
         .limit(20)
@@ -75,7 +77,7 @@ module WulinAudit
             target: [row.controller, row.action].compact.join("#"),
             count: row.request_count,
             average_duration: row.average_duration&.to_f&.round(2)
-          }
+          }.merge(postgres? ? percentile_values(row) : ruby_percentiles(scope.where(controller: row.controller, action: row.action).pluck(:duration).compact))
         end
     end
 
@@ -166,22 +168,20 @@ module WulinAudit
       row = scope.select(
         "COUNT(*) AS total_count",
         "AVG(duration) AS average_duration",
-        "PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY duration) AS p95_duration"
+        *postgres_percentile_columns
       ).take
       {
         total: row.total_count,
-        average_duration: row.average_duration&.to_f&.round(2),
-        p95_duration: row.p95_duration&.to_f&.round(2)
-      }
+        average_duration: row.average_duration&.to_f&.round(2)
+      }.merge(percentile_values(row))
     end
 
     def ruby_summary(durations)
       values = durations.pluck(:duration)
       {
         total: scope.count,
-        average_duration: values.any? ? (values.sum / values.length).round(2) : nil,
-        p95_duration: ruby_percentile(values)
-      }
+        average_duration: values.any? ? (values.sum / values.length).round(2) : nil
+      }.merge(ruby_percentiles(values))
     end
 
     def postgres_slow_by_action
@@ -192,7 +192,7 @@ module WulinAudit
           "COUNT(*) AS request_count",
           "AVG(duration) AS average_duration",
           "MAX(duration) AS maximum_duration",
-          "PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY duration) AS p95_duration"
+          *postgres_percentile_columns
         )
         .group(:controller, :action)
         .order(Arel.sql("p95_duration DESC"))
@@ -202,9 +202,8 @@ module WulinAudit
             target: [row.controller, row.action].compact.join("#"),
             count: row.request_count,
             average_duration: row.average_duration.to_f.round(2),
-            p95_duration: row.p95_duration.to_f.round(2),
             maximum_duration: row.maximum_duration.to_f.round(2)
-          }
+          }.merge(percentile_values(row))
         end
     end
 
@@ -217,19 +216,28 @@ module WulinAudit
             target: [controller, action].compact.join("#"),
             count: durations.length,
             average_duration: (durations.sum / durations.length).round(2),
-            p95_duration: ruby_percentile(durations),
             maximum_duration: durations.max.round(2)
-          }
+          }.merge(ruby_percentiles(durations))
         end
         .sort_by { |row| -row[:p95_duration] }
         .first(20)
     end
 
-    def ruby_percentile(values)
-      return if values.empty?
+    def postgres_percentile_columns
+      return [] unless postgres?
 
+      PERCENTILES.map { |name, fraction| "PERCENTILE_CONT(#{fraction}) WITHIN GROUP (ORDER BY duration) AS #{name}" }
+    end
+
+    def percentile_values(row)
+      PERCENTILES.keys.to_h { |name| [name.to_sym, row[name]&.to_f&.round(2)] }
+    end
+
+    def ruby_percentiles(values)
       sorted = values.sort
-      sorted[((sorted.length - 1) * 0.95).round].round(2)
+      PERCENTILES.to_h do |name, fraction|
+        [name.to_sym, sorted.empty? ? nil : sorted[((sorted.length - 1) * fraction).round].round(2)]
+      end
     end
 
     def postgres?

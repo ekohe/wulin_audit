@@ -28,7 +28,7 @@ class ActionLogAnalysisTest < Minitest::Test
     assert_equal 1, result.summary[:total]
     assert_equal [{label: "one@example.com", count: 1}], result.by_user
     assert_equal(
-      [{target: "PeopleController#index", count: 1, average_duration: 10.0}],
+      [{target: "PeopleController#index", count: 1, average_duration: 10.0, p50_duration: 10.0, p95_duration: 10.0, p99_duration: 10.0}],
       result.by_action
     )
   end
@@ -84,14 +84,26 @@ class ActionLogAnalysisTest < Minitest::Test
     assert_equal ["ceres.example.com", "olatu.example.com"], result.domains
   end
 
-  def test_summary_calculates_average_and_p95
+  def test_summary_calculates_average_and_percentiles
     [10, 20, 30, 40, 100].each { |duration| create_log(duration: duration) }
 
     summary = analysis.summary
 
     assert_equal 5, summary[:total]
     assert_in_delta 40, summary[:average_duration]
+    assert_in_delta 30, summary[:p50_duration]
     assert_in_delta 100, summary[:p95_duration]
+    assert_in_delta 100, summary[:p99_duration]
+  end
+
+  def test_slow_action_summary_and_usage_include_percentiles
+    [10, 20, 30, 40, 100].each { |duration| create_log(duration: duration) }
+
+    [analysis.slow_by_action.first, analysis.by_action.first].each do |row|
+      assert_in_delta 30, row[:p50_duration]
+      assert_in_delta 100, row[:p95_duration]
+      assert_in_delta 100, row[:p99_duration]
+    end
   end
 
   def test_slow_action_summary_is_ordered_by_p95

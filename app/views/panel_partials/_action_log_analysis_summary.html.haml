@@ -7,5 +7,14 @@
     %span.label Average
     %strong= analysis_duration_text(summary[:average_duration])
   .analysis-stat
-    %span.label 95th percentile
-    %strong= analysis_duration_text(summary[:p95_duration])
+    %span.label Percentiles
+    .analysis-percentiles
+      %div
+        %span.label P50
+        %strong= analysis_duration_text(summary[:p50_duration])
+      %div
+        %span.label P95
+        %strong= analysis_duration_text(summary[:p95_duration])
+      %div
+        %span.label P99
+        %strong= analysis_duration_text(summary[:p99_duration])

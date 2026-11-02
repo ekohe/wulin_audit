@@ -209,33 +209,12 @@ $analysis-very-slow: #c62828;
       position: relative;
     }
   }
-
-  .filter-actions {
-    display: flex;
-    gap: 8px;
-    margin-left: auto;
-  }
-
-  .apply-filters {
-    background: $main-color;
-    border-color: $main-color;
-    color: white;
-    min-width: 76px;
-
-    &:hover {
-      background: lighten($main-color, 5%);
-    }
-  }
-
-  .reset-filters {
-    min-width: 76px;
-  }
 }
 
 .analysis-stats {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr);
   padding: 12px;
 }
 
@@ -261,6 +240,20 @@ $analysis-very-slow: #c62828;
     font-variant-numeric: tabular-nums;
     font-weight: 500;
     margin-top: 4px;
+  }
+}
+
+.analysis-percentiles {
+  display: flex;
+  gap: 24px;
+  margin-top: 4px;
+
+  .label {
+    font-size: 10px;
+  }
+
+  strong {
+    margin-top: 0;
   }
 }
 
@@ -377,6 +370,8 @@ $analysis-very-slow: #c62828;
 }
 
 .usage-summary {
+  min-width: 720px;
+
   .count {
     width: 76px;
   }
