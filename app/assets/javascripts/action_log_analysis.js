@@ -130,6 +130,9 @@ window.WulinAuditAnalysis = (function() {
   function refreshDashboard(form, url) {
     if (request) request.abort();
     history.replaceState(null, document.title, url);
+    // Same loading bar as the wulin_master grids. Each request removes its
+    // own bar, also when a newer filter change aborts it.
+    var progress = $('<div class="progress analysis-progress"><div class="indeterminate"></div></div>').prependTo(form);
     request = $.get(url, { xhr: 1 }, function(html) {
       var page = new DOMParser().parseFromString(html, 'text/html');
       var filters = page.getElementById('action-log-analysis-filters');
@@ -149,6 +152,7 @@ window.WulinAuditAnalysis = (function() {
       renderActivity();
       renderUsers();
     });
+    request.always(function() { progress.remove(); });
   }
 
   function bindFilters() {
@@ -177,8 +181,10 @@ window.WulinAuditAnalysis = (function() {
       select.addEventListener('change', function() { submitFilters(form); });
     });
 
-    form.querySelectorAll('input[data-datetime]').forEach(function(input) {
-      input.addEventListener('change', function() {
+    // Inputmask fires change through jQuery only, which addEventListener
+    // does not receive; jQuery also gets flatpickr's native change.
+    $(form).find('input[data-datetime]').each(function() {
+      $(this).on('change', function() {
         delete form.dataset.range;
         form.querySelectorAll('.quick-range').forEach(function(button) {
           button.classList.remove('active');
@@ -194,6 +200,14 @@ window.WulinAuditAnalysis = (function() {
 
     form.querySelectorAll('.quick-range').forEach(function(button) {
       button.addEventListener('click', function() {
+        // Clicking the active range again keeps its dates as a fixed range.
+        if (button.classList.contains('active')) {
+          button.classList.remove('active');
+          delete form.dataset.range;
+          submitFilters(form);
+          return;
+        }
+
         var to = new Date();
         var from = new Date(to.getTime() - Number(button.dataset.seconds) * 1000);
         setDateTime(form.querySelector('[name="from"]'), from);
