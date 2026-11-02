@@ -94,7 +94,7 @@ module WulinAudit
 
     def slowest_requests
       scope.where.not(duration: nil)
-        .select(:created_at, :user_email, :controller, :action, :http_method, :path, :status, :duration, :spans)
+        .select(:created_at, :user_email, :controller, :action, :http_method, :host, :path, :status, :duration, :spans)
         .order(duration: :desc)
         .limit(100)
         .map do |log|
@@ -104,6 +104,7 @@ module WulinAudit
           target: [log.controller, log.action].compact.join("#"),
           http_method: log.http_method,
           path: log.path&.split("?", 2)&.first,
+          host: log.host,
           full_path: log.path,
           status: log.status,
           duration: log.duration,

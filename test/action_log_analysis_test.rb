@@ -127,10 +127,11 @@ class ActionLogAnalysisTest < Minitest::Test
   end
 
   def test_slowest_requests_separate_path_from_query_string
-    create_log(path: "/people?filter=active&page=2")
+    create_log(host: "olatu.example.com", path: "/people?filter=active&page=2")
 
     row = analysis.slowest_requests.first
 
+    assert_equal "olatu.example.com", row[:host]
     assert_equal "/people", row[:path]
     assert_equal "/people?filter=active&page=2", row[:full_path]
   end

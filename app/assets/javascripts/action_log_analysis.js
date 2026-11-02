@@ -237,7 +237,7 @@ window.WulinAuditAnalysis = (function() {
     setTimeout(function() {
       button.classList.remove('copy-result');
       iconElement.textContent = 'content_copy';
-      button.title = 'Copy full path';
+      button.title = 'Copy URL';
     }, 1500);
   }
 

@@ -8,6 +8,10 @@ class ActionLogAnalysisHelperTest < Minitest::Test
   include ActionView::Helpers::NumberHelper
   include WulinAudit::ActionLogAnalysisHelper
 
+  def request
+    Struct.new(:protocol).new("https://")
+  end
+
   def test_breakable_target_breaks_only_after_namespace_and_action_separator
     assert_equal "WulinMaster::<wbr>UserPreferencesController#<wbr>show",
       breakable_target("WulinMaster::UserPreferencesController#show")
@@ -26,6 +30,16 @@ class ActionLogAnalysisHelperTest < Minitest::Test
     assert_equal %(<span class="status-badge status-4xx">404</span>), status_badge(404)
     assert_equal %(<span class="status-badge status-5xx">500</span>), status_badge(500)
     assert_equal "—", status_badge(nil)
+  end
+
+  def test_request_url_adds_scheme_and_host_to_path
+    row = {host: "olatu.example.com", full_path: "/people?page=2"}
+
+    assert_equal "https://olatu.example.com/people?page=2", analysis_request_url(row)
+  end
+
+  def test_request_url_without_host_is_the_path
+    assert_equal "/people?page=2", analysis_request_url({host: nil, full_path: "/people?page=2"})
   end
 
   def test_datetime_drops_iso_separators
