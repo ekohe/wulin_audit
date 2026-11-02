@@ -15,6 +15,14 @@ module WulinAudit
       tag.span(analysis_duration_text(milliseconds), class: ["duration", duration_class(milliseconds)])
     end
 
+    # action_logs stores the host without a scheme, so the URL takes this
+    # page's scheme. Rows logged before the host column have only the path.
+    def analysis_request_url(row)
+      return row[:full_path] if row[:host].blank?
+
+      "#{request.protocol}#{row[:host]}#{row[:full_path]}"
+    end
+
     # Always two decimals, so right-aligned values line up.
     def analysis_duration_text(milliseconds)
       return "—" if milliseconds.nil?
