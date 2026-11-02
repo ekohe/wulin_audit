@@ -94,6 +94,15 @@ $analysis-very-slow: #c62828;
   flex-wrap: wrap;
   gap: 10px 12px;
   padding: 12px 14px;
+  position: relative;
+
+  // Over the panel's top edge, so showing it does not move the filters.
+  .analysis-progress {
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
 
   .filter-field {
     display: flex;
