@@ -11,7 +11,7 @@
           %th.numeric Requests
           %th.numeric Average
           %th.numeric P50
-          %th.numeric P95
+          %th.numeric{"aria-sort": "descending"} P95
           %th.numeric P99
           %th.numeric Maximum
       %tbody
@@ -35,7 +35,7 @@
           %th.target Controller#action
           %th Request
           %th.status Status
-          %th.numeric.duration-column Total
+          %th.numeric.duration-column{"aria-sort": "descending"} Total
           %th.numeric.duration-column DB
           %th.numeric.duration-column View
           %th.numeric.duration-column Action

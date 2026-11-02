@@ -343,6 +343,12 @@ $analysis-very-slow: #c62828;
     z-index: 1;
   }
 
+  // The server returns the rows in this column's order.
+  th[aria-sort] {
+    color: #222;
+    font-weight: 700;
+  }
+
   tbody tr:hover {
     background: #fafbfc;
   }
