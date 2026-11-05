@@ -1,1 +1,1 @@
-ruby_version: 3.0
+ruby_version: 3.4 # the gemspec's floor: lint for the oldest Ruby the code must run on
