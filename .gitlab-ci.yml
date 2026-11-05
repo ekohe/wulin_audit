@@ -1,7 +1,12 @@
+# The wulin v3 Ruby policy: the floor is 3.4 (the gemspec), the default is 4.0. Tests run on both,
+# each on the newest patch of its line through the floating tag; anything else runs on the default.
+variables:
+  RUBY_VERSION: "4.0"
+
 default:
-  image: ruby:3.3
+  image: ruby:$RUBY_VERSION
   cache:
-    key: gems
+    key: gems-ruby-$RUBY_VERSION
     paths:
       - vendor/bundle
   before_script:
@@ -19,5 +24,8 @@ lint:
 
 test:
   stage: test
+  parallel:
+    matrix:
+      - RUBY_VERSION: ["3.4", "4.0"]
   script:
     - bundle exec rake test

@@ -15,11 +15,12 @@ Gem::Specification.new do |s|
   s.executables = `git ls-files -- bin/*`.split("\n").map { |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  s.required_ruby_version = ">= 2.7"
+  s.required_ruby_version = ">= 3.4"
+
+  s.add_dependency "haml-rails"
+  s.add_dependency "rails", ">= 8.1"
 
   s.add_development_dependency "standard"
   s.add_development_dependency "minitest"
-  s.add_development_dependency "rails"
   s.add_development_dependency "sqlite3"
-  s.add_development_dependency "haml-rails"
 end
