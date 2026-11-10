@@ -7,12 +7,14 @@ require "active_support/notifications"
 require "securerandom"
 
 ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+APP_CONFIG = {}
 
 ActiveRecord::Schema.define do
   create_table :audit_logs, force: true do |t|
     t.integer :user_id
     t.string :request_ip
     t.string :user_email
+    t.string :request_id
     t.string :record_id
     t.string :action
     t.string :class_name
