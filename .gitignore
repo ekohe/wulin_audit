@@ -1,7 +1,8 @@
 *.gem
 .bundle
-vendor/bundle
-Gemfile.lock
-pkg/*
 .DS_Store
+/pkg/
+/tmp/
+/log/
+/vendor/bundle/
 docs/

@@ -11,7 +11,7 @@ bundle exec standardrb       # lint (must be clean before commit)
 bundle exec standardrb --fix # auto-fix lint offenses
 ```
 
-CI (`.gitlab-ci.yml`) runs `standardrb` then `rake test` on every push.
+CI (`.gitlab-ci.yml`) runs `gem build`, `rake test` and `standardrb` on Ruby 4.0.9 on every push.
 
 ## Structure
 
