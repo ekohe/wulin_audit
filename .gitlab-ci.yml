@@ -1,23 +1,30 @@
-default:
-  image: ruby:3.3
-  cache:
-    key: gems
-    paths:
-      - vendor/bundle
-  before_script:
-    - bundle config set --local path vendor/bundle
-    - bundle install --jobs=$(nproc)
+image: ruby:4.0.9
 
 stages:
-  - lint
   - test
 
-lint:
-  stage: lint
+default:
+  before_script:
+    - bundle config set --local path vendor/bundle
+    - bundle install --jobs 8
+  cache:
+    key:
+      files:
+        - Gemfile.lock
+    paths:
+      - vendor/bundle
+
+build:
+  stage: test
   script:
-    - bundle exec standardrb
+    - gem build wulin_audit.gemspec
 
 test:
   stage: test
   script:
     - bundle exec rake test
+
+lint:
+  stage: test
+  script:
+    - bundle exec standardrb

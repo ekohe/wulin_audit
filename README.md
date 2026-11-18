@@ -4,10 +4,14 @@ Automatic audit logging for Rails + ActiveRecord. Every create, update, and dele
 
 ## Installation
 
-Add to your Gemfile:
+Add the submodule on `develop`, then add it to the Gemfile:
+
+```shell
+git submodule add -b develop git@gitlab.ekohe.com:ekohe/wulin/wulin_audit.git vendor/gems/wulin_audit
+```
 
 ```ruby
-gem 'wulin_audit'
+gem "wulin_audit", path: "vendor/gems/wulin_audit"
 ```
 
 Run:
@@ -17,9 +21,11 @@ bundle install
 rails db:migrate
 ```
 
-The engine auto-loads its migration. All ActiveRecord models are audited by default.
+The engine auto-loads its migrations. All ActiveRecord models are audited by default.
 
-## How It Works
+## Usage
+
+### How It Works
 
 WulinAudit includes itself into `ActiveRecord::Base` via `after_create`, `after_update`, and `after_destroy` callbacks. Each audited action writes a `WulinAudit::AuditLog` record with:
 
@@ -36,7 +42,7 @@ WulinAudit includes itself into `ActiveRecord::Base` via `after_create`, `after_
 
 Your application must implement `User.current_user` returning an object that responds to `id`, `email`, and `ip`.
 
-## Excluding Models
+### Excluding Models
 
 ```ruby
 class Session < ActiveRecord::Base
@@ -44,7 +50,7 @@ class Session < ActiveRecord::Base
 end
 ```
 
-## Restricting Audited Columns
+### Restricting Audited Columns
 
 By default all columns are audited (except `created_at` and `updated_at`). To restrict:
 
@@ -56,7 +62,7 @@ end
 
 Ignored when `reject_audit` is set.
 
-## Customizing Relation Display
+### Customizing Relation Display
 
 When a foreign key changes, the audit log resolves it to a human-readable value. By default it looks for `name`, then `code`, then `id` on the related record. To override:
 
@@ -66,7 +72,7 @@ class Department < ActiveRecord::Base
 end
 ```
 
-## Customizing the Audited Class Name
+### Customizing the Audited Class Name
 
 `RecordAuditScreen` looks up audit logs by `class_name`. If a model's audits should be queried under a different name (e.g. an STI base class), define `audit_class_name`:
 
@@ -80,7 +86,7 @@ end
 
 This only affects the `RecordAuditScreen` query — the `class_name` written to each `AuditLog` row is always the record's actual class.
 
-## Action Log
+### Action Log
 
 A lightweight APM that records every HTTP request with performance breakdown. Subscribes to `ActiveSupport::Notifications` — no middleware or monkey-patching. Enabled by default; disable entirely with:
 
@@ -104,7 +110,7 @@ Each request writes one `WulinAudit::ActionLog` row:
 | `params` | Filtered request parameters (JSONB) |
 | `status` | HTTP response code |
 | `duration` | Total request duration in ms |
-| `allocations` | Object allocations (Rails 5.2+) |
+| `allocations` | Object allocations |
 | `exception` | Exception class + message, if any |
 | `spans` | Performance breakdown by type (JSONB) |
 
@@ -116,7 +122,7 @@ The `spans` column stores an aggregate hash:
 
 `count` is the number of SQL queries and template/partial renders. `duration` comes from Rails' own `db_runtime` and `view_runtime`, which don't overlap: view time excludes SQL run while rendering, and nested partials are counted once. `WulinAudit::ActionLog` derives `db_duration` and `view_duration` from `spans`, and `action_duration` as the remainder of `duration` — no extra columns needed.
 
-### Write Path
+#### Write Path
 
 The row is written synchronously, at the end of the request, on the request thread's own connection. Measured cost: **0.4 ms**. INSERTs are silenced from the Rails log, and a failure is logged and swallowed — it can never break a request.
 
@@ -126,11 +132,11 @@ This used to run on a background thread pool. It doesn't any more, deliberately:
 
 Writing on the request thread also means rows appear normally in a host app's specs, inside the fixture transaction, and roll back with it. Nothing needs disabling in `config/environments/test.rb`.
 
-### Param Filtering
+#### Param Filtering
 
 `params` are passed through `ActiveSupport::ParameterFilter` using your app's `config.filter_parameters` — the same rules Rails applies to its own logs, so passwords and other sensitive keys are redacted. If the filtered payload's JSON serialization exceeds 512 bytes, it's truncated to a plain string.
 
-### Excluding Controllers
+#### Excluding Controllers
 
 By default all controllers are logged. To opt out, use `reject_action_log`:
 
@@ -142,9 +148,9 @@ end
 
 WulinAudit's own controllers are excluded by default.
 
-## WulinMaster Integration
+### WulinMaster Integration
 
-If [WulinMaster](https://github.com/ekohe/wulin_master) is loaded, WulinAudit automatically:
+If [WulinMaster](https://gitlab.ekohe.com/ekohe/wulin/wulin_master) is loaded, WulinAudit automatically:
 
 - Adds an **Audit** toolbar action to grids, gated on a `record_audit#read` permission — create that permission yourself, it isn't seeded by this gem
 - Provides `AuditLogScreen` at `/wulin_audit/audit_logs` for browsing all audit logs
@@ -190,7 +196,7 @@ duration, slow action groups, and the 100 slowest requests. Ranges are limited t
 six months, and time buckets are selected automatically to keep charts at 200
 data points or fewer.
 
-## InfluxDB Integration (Optional)
+### InfluxDB Integration (Optional)
 
 To also push audit events to InfluxDB, configure in your `APP_CONFIG`:
 
@@ -208,10 +214,18 @@ To backfill existing logs into InfluxDB:
 rails wulin_audit:load_audit_in_influxdb
 ```
 
-## Contributing
+## Development
 
-Jimmy, Xuhao, Maxime Guilbot, Sarah Wang, and Mel Cao from [Ekohe](https://ekohe.com).
+Ruby 4.0.9, Rails 8.1.
+
+```shell
+bundle install
+bundle exec rake test
+bundle exec standardrb
+```
+
+See `CONTRIBUTING.md` for the code structure.
 
 ## License
 
-WulinAudit is released under the MIT license.
+MIT, see `LICENSE`.

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-`wulin_audit` is a Rails engine, never run standalone — it's always loaded into a host app alongside [`wulin_master`](https://github.com/ekohe/wulin_master). This file is for agents working in a host app that consumes this gem. If you're developing the gem itself, see `CONTRIBUTING.md`.
+`wulin_audit` is a Rails engine, never run standalone — it's always loaded into a host app alongside [`wulin_master`](https://gitlab.ekohe.com/ekohe/wulin/wulin_master). This file is for agents working in a host app that consumes this gem. If you're developing the gem itself, see `CONTRIBUTING.md`.
 
 ## Wiring it into a host app
 
